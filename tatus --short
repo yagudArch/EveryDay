@@ -1,0 +1,80 @@
+warning: in the working copy of '.ai/ARCHITECTURE.md', CRLF will be replaced by LF the next time Git touches it
+[1mdiff --git a/.ai/ACTIVE_WORK.md b/.ai/ACTIVE_WORK.md[m
+[1mindex e69de29..c2f42d9 100644[m
+[1m--- a/.ai/ACTIVE_WORK.md[m
+[1m+++ b/.ai/ACTIVE_WORK.md[m
+[36m@@ -0,0 +1,21 @@[m
+[32m+[m[32m# Активная работа[m
+[32m+[m
+[32m+[m[32m## LEAD / ARCHITECT — FND-001 DONE / FND-005 IN_PROGRESS[m
+[32m+[m[32m- Область: корневые конфигурации, packages/contracts/**, .ai/**, интеграция.[m
+[32m+[m[32m- Прочитаны все 12 исходных MD-файлов, включая MASTER_PROMPT целиком.[m
+[32m+[m[32m- Git: main, исходный commit e84bc4e, начальное дерево чистое.[m
+[32m+[m[32m- Контракты опубликованы. BACKEND и AI передали реализацию на интеграцию; MOBILE исправляет API URL/порт и проверяет typecheck.[m
+[32m+[m[32m- npm install выполнен успешно после ограничения сетевого параллелизма; LEAD запускает сборку и тесты.[m
+[32m+[m[32m- Общие конфигурации, lockfile и .ai редактирует только LEAD. Отчёты исполнителей LEAD переносит сюда последовательно, без конфликтов.[m
+[32m+[m
+[32m+[m[32m## Резервирование после FND-001[m
+[32m+[m[32m- BACKEND / FND-002: apps/backend/** и database/**.[m
+[32m+[m[32m- MOBILE / FND-003: apps/mobile/**.[m
+[32m+[m[32m- AI ENGINEER / FND-004: packages/ai/**.[m
+[32m+[m[32m- QA/DEVOPS / FND-005: scripts/**, .github/** по согласованию с LEAD; FND-006 — независимая проверка.[m
+[32m+[m
+[32m+[m[32m## Ограничения окружения[m
+[32m+[m[32m- Windows, Node 22.23.2, npm 10.9.8, Python 3.12.2, Git 2.44.0.[m
+[32m+[m[32m- Flutter/Dart, Android SDK/adb, Gradle, Docker, psql не найдены в PATH. Java доступна.[m
+[32m+[m[32m- Нативную iOS сборку на Windows не заявлять. AI ключей в репозитории нет.[m
+[32m+[m[32m- npm metadata периодически ECONNRESET; используем подтверждённые версии и lockfile, без отключения TLS.[m
+[1mdiff --git a/.ai/ARCHITECTURE.md b/.ai/ARCHITECTURE.md[m
+[1mindex 27aa4fb..9ff7bd6 100644[m
+[1m--- a/.ai/ARCHITECTURE.md[m
+[1m+++ b/.ai/ARCHITECTURE.md[m
+[36m@@ -1,2 +1,76 @@[m
+[31m-Architecture not initialized[m
+[32m+[m[32m# Архитектура «Каждый день»[m
+[32m+[m
+[32m+[m[32m## Решение LEAD — Foundation[m
+[32m+[m
+[32m+[m[32mТребования: MASTER_PROMPT.md, особенно разделы 34–38 и этап 1 раздела 42. Этапы внедрения берём из раздела 42: Foundation → питание → продукты/рецепты/покупки → погода/образ → активность → план дня → изменения → AI Assistant → polish. Это порядок разработки, не изменение продуктового приоритета питания.[m
+[32m+[m
+[32m+[m[32m### Сравнение mobile stack[m
+[32m+[m
+[32m+[m[32m| Вариант | Пригодность | Ограничение текущего окружения | Решение |[m
+[32m+[m[32m|---|---|---|---|[m
+[32m+[m[32m| Flutter | Общий UI и бизнес-логика, отдельный Dart SDK | Flutter/Dart отсутствуют; отдельный язык контрактов | Не выбран |[m
+[32m+[m[32m| React Native + Expo | Общий TypeScript с backend и runtime-контрактами; Android/iOS; Metro можно проверить без Android SDK | Для нативных SDK, widgets, Health и signing потребуются development builds и native tooling | Выбран |[m
+[32m+[m[32m| Kotlin Multiplatform | Общая Kotlin-логика и возможность native UI/Compose, прямые platform integrations | Нет Gradle/Android SDK; iOS требует Apple toolchain; нет общего TS-контракта без генерации | Не выбран |[m
+[32m+[m
+[32m+[m[32mДокументация проверена при INITIALIZATION:[m
+[32m+[m[32m- https://docs.expo.dev/versions/latest/[m
+[32m+[m[32m- https://kotlinlang.org/docs/multiplatform/kotlin-multiplatform-react-native.html[m
+[32m+[m[32m- https://docs.flutter.dev/install/manual[m
+[32m+[m[32m- https://nodejs.org/api/sqlite.html[m
+[32m+[m
+[32m+[m[32m### Технический стек[m
+[32m+[m[32m- npm workspaces, TypeScript strict, единый lockfile.[m
+[32m+[m[32m- apps/mobile: React Native / Expo SDK 57; React 19.2.3, RN 0.86.3 по официальному blank-typescript шаблону. Native приложение, web только дополнительная проверочная цель.[m
+[32m+[m[32m- apps/backend: Node 22.23.2, Fastify, REST /api/v1, модульный монолит. Границы HTTP → application services → persistence, без микросервисов на Foundation.[m
+[32m+[m[32m- database: SQLite через node:sqlite с foreign keys, WAL, транзакциями и версионированными SQL-миграциями. Это реальная файловая реляционная БД, не in-memory подмена runtime. node:sqlite в Node 22 имеет экспериментальный статус; runtime закреплён. Однопроцессная Foundation-среда, не обещание production-scale.[m
+[32m+[m[32m- PostgreSQL — целевой кандидат перед multi-instance deployment, но сейчас НЕ реализован и НЕ обозначается как работающий. Переход отдельной задачей с миграцией данных и integration suite.[m
+[32m+[m[32m- packages/contracts: Zod runtime schemas, TS DTO и централизованные HTTP route constants; сервер и mobile обязаны использовать их.[m
+[32m+[m[32m- packages/ai: независимый от UI и DB provider port; capability checks; disabled provider по умолчанию; никаких выдуманных ответов при отсутствии ключей.[m
+[32m+[m
+[32m+[m[32m## Контуры и ownership[m
+[32m+[m
+[32m+[m[32m```text[m
+[32m+[m[32mapps/mobile -> packages/contracts <- apps/backend[m
+[32m+[m[32m                                      |      |[m
+[32m+[m[32m                               packages/ai   database/migrations[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32mLEAD владеет contracts, корневым package.json/lockfile, .ai. BACKEND — apps/backend и database. MOBILE — apps/mobile. AI ENGINEER — packages/ai. QA/DEVOPS — scripts и .github; независимый аудит после интеграции.[m
+[32m+[m
+[32m+[m[32mБудущие доменные таблицы из MASTER_PROMPT не реализуем пустой имитацией модулей. Foundation создаёт users, sessions, user_preferences, user_preference_values, user_goals, user_memory, daily_context, subscriptions. Дальнейшие миграции добавят daily_snapshots, changes, wardrobe_items, outfits, outfit_feedback, food_items, food_inventory, recipes, meals, nutrition_entries, shopping_lists, shopping_items, activities, events, ai_conversations, ai_messages, ai_actions.[m
+[32m+[m
+[32m+[m[32m## API Foundation[m
+[32m+[m
+[32m+[m[32m- GET /api/v1/health — доступность сервера/БД.[m
+[32m+[m[32m- POST /api/v1/auth/register — account + preferences + trial в одной транзакции.[m
+[32m+[m[32m- POST /api/v1/auth/login — opaque bearer session.[m
+[32

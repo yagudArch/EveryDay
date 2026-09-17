@@ -1,0 +1,22 @@
+{
+  "name": "@everyday/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/server.ts",
+    "start": "node dist/server.js",
+    "db:migrate": "node dist/cli/migrate.js"
+  },
+  "dependencies": {
+    "@everyday/ai": "0.1.0",
+    "@everyday/contracts": "0.1.0",
+    "@fastify/cors": "11.3.0",
+    "@fastify/helmet": "13.1.1",
+    "fastify": "5.12.5",
+    "zod": "3.25.76",
+    "zod-to-json-schema": "^3.24.1"
+  }
+}

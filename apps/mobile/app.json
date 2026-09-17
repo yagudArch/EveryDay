@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Каждый день",
+    "slug": "everyday",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "everyday",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.everyday.app.dev"
+    },
+    "android": {
+      "package": "com.everyday.app.dev"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    }
+  }
+}

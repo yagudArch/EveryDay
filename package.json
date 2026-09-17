@@ -1,0 +1,25 @@
+{
+  "name": "everyday",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/*", "packages/*"],
+  "engines": { "node": ">=22.23.2 <23" },
+  "scripts": {
+    "build": "npm run build -w @everyday/contracts && npm run build -w @everyday/ai && npm run build -w @everyday/backend",
+    "typecheck": "npm run build && npm run typecheck -w @everyday/mobile",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm test",
+    "dev:backend": "npm run build && npm run dev -w @everyday/backend",
+    "dev:mobile": "npm run start -w @everyday/mobile",
+    "build:mobile": "npm run export -w @everyday/mobile",
+    "db:migrate": "npm run build && npm run db:migrate -w @everyday/backend",
+    "doctor": "node scripts/doctor.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.3",
+    "typescript": "~6.0.3",
+    "tsx": "4.23.13",
+    "vitest": "^3.2.4"
+  }
+}
