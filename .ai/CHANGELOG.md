@@ -43,3 +43,9 @@
 - Commit 91beb56dd08b3de9c3dd908f3b50c7ddbfbba184 (`docs: complete DOC-001 and unblock foundation gate`) отправлен в origin/main; live remote SHA совпал, git status clean, полный porcelain пустой.
 - На основании опубликованных implementation commits, результатов проверок и устранения единственной Git-блокировки LEAD подтвердил DOC-001 и FND-002/FND-003/FND-004 DONE; FND-001 остаётся DONE.
 - FND-005 переведена в TODO: QA/DEVOPS доступны повторный preflight и Foundation gate. Gate не выполнялся и не объявлен пройденным. Эта запись закрытия проходит отдельную Git-сдачу по AGENTS.md §14.
+
+## 2026-09-19 — QA / DEVOPS — FND-005 Foundation gate
+- Независимо выполнены check (226 tests / 24 files), builds/typecheck, Metro Android/iOS/web, migration CLI apply/idempotency и HTTP/SQLite проверки.
+- Выявлены блокеры воспроизводимости: npm ci EUSAGE (несогласованный lockfile), Expo compatibility check FAIL. Переданы LEAD/MOBILE без изменения чужих manifests/lockfile.
+- Исправлен вызов отсутствующего npm run smoke в CI: добавлен scripts/foundation-smoke.mjs и прямой запуск в workflow; 2 сквозных теста Mobile/Backend/AI PASS, независимый review PASS.
+- FND-005 BLOCKED, Foundation/native/production readiness не объявляется. Детальные команды, владельцы и ограничения — FND-005-REPORT.md.

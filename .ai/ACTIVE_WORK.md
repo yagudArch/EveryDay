@@ -1,5 +1,16 @@
 # Активная работа
 
+## QA / DEVOPS — FND-005 BLOCKED (Foundation gate FAIL)
+- Зависимости DONE; live origin/main 31a79b8 и ancestry реализаций проверены; исходное дерево и индекс чистые.
+- Резервирование: scripts/**, .github/**, собственный блок ACTIVE_WORK, строка FND-005 TASKS, append CHANGELOG, FND-005-REPORT.md. QA выполняет Git-операции последовательно. Код модулей и архитектура только читаются.
+- Проверки: npm ci, общий check, Metro export, migrations/HTTP, сквозная Mobile/Backend/AI интеграция, contracts, CI, отсутствие fake production data. Результаты фиксируются по собственным запускам.
+- Фактически PASS: npm run check (226 tests / 24 files, builds contracts/AI/backend, mobile typecheck); Metro Android/iOS/web; migration CLI apply/skip; 2 сквозных smoke tests реального mobile HTTP client + compiled backend + AIService + SQLite, включая restart/isolation/consent/preview-only.
+- Блокеры LEAD/MOBILE: npm ci exit 1 EUSAGE — missing react-native-safe-area-context@5.7.0 и react-native-screens@4.26.2 в lockfile; expo install --check exit 1 — установленные версии не соответствуют ожидаемым. Lockfile/root manifests принадлежат LEAD, QA не изменяет их самостоятельно.
+- Исправлено QA: workflow вызывал отсутствующий npm run smoke (exit 1). Добавлен scripts/foundation-smoke.mjs, workflow вызывает node --import tsx --test scripts/foundation-smoke.mjs; 2/2 PASS, независимый review PASS, assertions усилены и проверены повторно.
+- Remote CI не подтверждён: gh auth status exit 127 (gh отсутствует), unauthenticated GitHub Actions API HTTP 404. Нет Android SDK/adb в PATH, ANDROID_HOME не задан, iOS требует macOS/Xcode; live AI/native/production readiness не заявляются.
+- Адресат LEAD: согласовать исправление manifests/lockfile с MOBILE и повторить чистый npm ci, Expo check и CI matrix. До устранения блокеров FND-005 не DONE. Собственные результаты подлежат commit/push; SHA и финальный status передаются итоговым сообщением.
+- Статический аудит MOBILE: useAsyncResource.setData не инвалидирует pending GET; Home не перезагружает TodayContext при смене timezone. P2, UI reproduction не выполнялся; код и точные сценарии в FND-005-REPORT.md, переданы MOBILE/LEAD без изменения чужого модуля.
+
 ## LEAD / ARCHITECT — DOC-001 DONE; Foundation передан QA/DEVOPS
 - Резервирование 2026-09-19: .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md, .ai/TASKS.md, append .ai/CHANGELOG.md. Единственный исполнитель Git-операций — LEAD. Код, contracts, архитектура и результаты агентов сохраняются.
 - Исходный Git: main → origin/main, HEAD 33610f11302e1b46a1f35acc9279af3738ca4d41; индекс пуст, изменены только три исходных файла DOC-001: ACTIVE_WORK, PROJECT_STATE, TASKS.
