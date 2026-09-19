@@ -1,13 +1,14 @@
 # Активная работа
 
-## LEAD / ARCHITECT — DOC-001 REVIEW (финальная сдача)
+## LEAD / ARCHITECT — DOC-001 DONE; Foundation передан QA/DEVOPS
 - Резервирование 2026-09-19: .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md, .ai/TASKS.md, append .ai/CHANGELOG.md. Единственный исполнитель Git-операций — LEAD. Код, contracts, архитектура и результаты агентов сохраняются.
 - Исходный Git: main → origin/main, HEAD 33610f11302e1b46a1f35acc9279af3738ca4d41; индекс пуст, изменены только три исходных файла DOC-001: ACTIVE_WORK, PROJECT_STATE, TASKS.
 - После git fetch origin и проверки live remote подтверждено: FND-002 92f642f, FND-003 754d081, FND-004 251b4fd — предки origin/main; отчёт QA опубликован в 33610f1. Identity соответствует существующей истории, не изменялась.
-- FND-002/FND-003/FND-004: REVIEW до сдачи этого документа и проверки чистого дерева; единственная прежняя блокировка — несданные изменения LEAD. Результаты проверок агентов сохранены ниже как история.
-- FND-005: ожидает финальной Git-проверки DOC-001; после неё LEAD подтвердит зависимости и откроет TODO для запуска QA/DEVOPS. Сам Foundation gate не выполнялся.
+- FND-002/FND-003/FND-004: DONE подтверждено LEAD после сдачи DOC-001, успешного общего check и проверки опубликованных commits и чистого дерева. Прежняя блокировка снята; результаты агентов сохранены ниже как история.
+- FND-005: TODO, доступна QA/DEVOPS для повторного preflight и запуска Foundation gate. Зависимости DONE, организационных блокировок нет; сам gate не выполнялся. FND-005 не закрыта.
 - Проверки сдачи: npm run check PASS — сборки contracts/AI/backend, mobile typecheck, 226 tests / 24 files. Проверяются согласованность MD, отсутствие code/config diff и git diff --check. Native/device, live AI и production readiness этой задачей не подтверждаются; независимый QA gate не заменён.
-- План сдачи: commit `docs: complete DOC-001 and unblock foundation gate`, push origin main, проверка remote и clean status; затем отдельная отправка подтверждённых статусов по AGENTS.md §14.
+- Сдача: 91beb56dd08b3de9c3dd908f3b50c7ddbfbba184 — `docs: complete DOC-001 and unblock foundation gate`; push origin main успешен, live remote SHA совпал, git status clean, porcelain с untracked-files=all пустой. MD diff/--check и staged diff проверены; изменений кода/config нет.
+- Эти подтверждённые статусы оформляются отдельным docs commit/push по AGENTS.md §14 с повторной проверкой remote и clean status. После его успешной отправки резервирование DOC-001 освобождается; Git-операции FND-005 выполняет QA/DEVOPS.
 
 ## История аудитов агентов до финальной сдачи DOC-001
 Следующие блоки сохранены без перезаписи результатов. BLOCKED, DONE и IN_PROGRESS внутри этой истории отражают момент соответствующей проверки; текущие назначения определяются блоком выше и TASKS.md. FND-005-REPORT.md — исторический preflight QA, не текущий запрет запуска после снятия блокировки LEAD.

@@ -38,3 +38,8 @@
 - FND-002/FND-003/FND-004 переданы на финальное подтверждение LEAD после Git-сдачи DOC-001. Следующий шаг — открыть FND-005 для QA/DEVOPS; независимый Foundation gate ещё не выполнялся.
 - Код, contracts, архитектура и назначения feature-задач не изменены. Подтверждённые статусы закрытия сдаются отдельным commit/push после проверки чистоты по AGENTS.md §14.
 - Проверка LEAD: npm run check PASS — сборки contracts/AI/backend, mobile typecheck, 226 tests / 24 files; это не независимый Foundation gate QA.
+
+## 2026-09-19 — LEAD / ARCHITECT — подтверждение закрытия DOC-001
+- Commit 91beb56dd08b3de9c3dd908f3b50c7ddbfbba184 (`docs: complete DOC-001 and unblock foundation gate`) отправлен в origin/main; live remote SHA совпал, git status clean, полный porcelain пустой.
+- На основании опубликованных implementation commits, результатов проверок и устранения единственной Git-блокировки LEAD подтвердил DOC-001 и FND-002/FND-003/FND-004 DONE; FND-001 остаётся DONE.
+- FND-005 переведена в TODO: QA/DEVOPS доступны повторный preflight и Foundation gate. Gate не выполнялся и не объявлен пройденным. Эта запись закрытия проходит отдельную Git-сдачу по AGENTS.md §14.

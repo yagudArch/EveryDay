@@ -8,7 +8,7 @@
 
 | ID | Приоритет | Роль | Статус | Зависимости | Файлы | Результат и критерий готовности |
 |---|---|---|---|---|---|---|
-| DOC-001 | P0 | LEAD | REVIEW | Прямое поручение заказчика | .ai/{ACTIVE_WORK,TASKS,PROJECT_STATE,CHANGELOG}.md | Правила опубликованы в ca21ac3; финальная синхронизация состояния и снятие блокировки Foundation. Только MD; DONE после commit/push и clean status, затем отдельная сдача подтверждённых статусов |
+| DOC-001 | P0 | LEAD | DONE | Прямое поручение заказчика | .ai/{ACTIVE_WORK,TASKS,PROJECT_STATE,CHANGELOG}.md | Правила ca21ac3; финальная сдача 91beb56 опубликована в origin/main, live remote SHA подтверждён, status clean. npm run check PASS (226 tests), MD diff/check PASS. LEAD подтвердил закрытие; запись статусов сдаётся отдельно по §14 |
 
 Записи Foundation синхронизируются LEAD с опубликованными implementation commits и отчётами агентов. DOC-001 не повторяет инициализацию, не меняет код/архитектуру и не заменяет независимый Foundation gate или native-проверки.
 
@@ -17,10 +17,10 @@
 | ID | Приоритет | Роль | Статус | Зависимости | Файлы | Результат и критерий готовности |
 |---|---|---|---|---|---|---|
 | FND-001 | P0 | LEAD | DONE | — | package.json, tsconfig*, packages/contracts/**, .ai/** | Стек сравнен, контракты опубликованы, области ролей закреплены до параллельной реализации |
-| FND-002 | P0 | BACKEND | REVIEW | FND-001 | apps/backend/**, database/** | Implementation 92f642f опубликован в origin/main. Отчёт BACKEND: check PASS (201 tests), compiled HTTP smoke PASS, независимый review PASS. Финальное подтверждение LEAD после сдачи DOC-001 и clean status |
-| FND-003 | P0 | MOBILE | REVIEW | FND-001 | apps/mobile/** | Implementation 754d081 опубликован в origin/main. Отчёт MOBILE: check PASS (208 tests), Metro Android/iOS/web PASS, реальный HTTP/SQLite integration, независимый review PASS. Финальное подтверждение LEAD после сдачи DOC-001 и clean status |
-| FND-004 | P0 | AI ENGINEER | REVIEW | FND-001 | packages/ai/** | Implementation 251b4fd опубликован в origin/main. Отчёт AI: check PASS (226 tests), builds/typecheck, независимый review PASS; guards/contracts/unavailable, timeout/cancellation/output validation, без DB writes. Финальное подтверждение LEAD после сдачи DOC-001 и clean status |
-| FND-005 | P0 | QA/DEVOPS + LEAD | BLOCKED | FND-002, FND-003, FND-004 | scripts/**, .github/**, lockfile, .ai/** | Implementation commits зависимостей в origin/main, задачи REVIEW; ожидается финальная Git-сдача DOC-001 и подтверждение LEAD. Foundation gate не запускался; исторический preflight сохранён в FND-005-REPORT.md |
+| FND-002 | P0 | BACKEND | DONE | FND-001 | apps/backend/**, database/** | Implementation 92f642f в origin/main. Отчёт BACKEND: check PASS (201 tests), compiled HTTP smoke PASS, независимый review PASS. LEAD принял после сдачи DOC-001 91beb56, общего check PASS (226 tests) и clean status |
+| FND-003 | P0 | MOBILE | DONE | FND-001 | apps/mobile/** | Implementation 754d081 в origin/main. Отчёт MOBILE: check PASS (208 tests), Metro Android/iOS/web PASS, реальный HTTP/SQLite integration, независимый review PASS. LEAD принял после сдачи DOC-001 91beb56, общего check PASS и clean status; native gate остаётся отдельным |
+| FND-004 | P0 | AI ENGINEER | DONE | FND-001 | packages/ai/** | Implementation 251b4fd в origin/main. Отчёт AI: check PASS (226 tests), builds/typecheck, независимый review PASS; guards/contracts/unavailable, timeout/cancellation/output validation, без DB writes. LEAD принял после сдачи DOC-001 91beb56, общего check PASS и clean status |
+| FND-005 | P0 | QA/DEVOPS + LEAD | TODO | FND-002, FND-003, FND-004 | scripts/**, .github/**, lockfile, .ai/** | Зависимости DONE, commits в origin/main, блокировка DOC-001 снята. QA/DEVOPS разрешены повторный preflight и Foundation gate; gate ещё не выполнялся, результат NOT_RUN. FND-005-REPORT.md сохраняет исторический preflight до разблокировки |
 | FND-006 | P0 | QA/DEVOPS | TODO | FND-005 | весь проект read-only | Независимый аудит, критичные дефекты устранены; отдельный вердикт о native readiness |
 
 ## Следующий цикл: завершение Foundation на устройствах
