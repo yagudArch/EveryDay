@@ -26,3 +26,8 @@
 - Исправлены timeout/cancellation независимо от поведения провайдера, pre-abort, числовые лимиты, malformed/thrown status, result envelope и проверка исходного output до JSON-сериализации.
 - Добавлены регрессии; npm run check PASS: 226 tests / 24 files (74 AI tests), builds и mobile typecheck. Независимый review PASS; рекомендованный schema-valid byte-limit test добавлен и проверен.
 - AI-001, voice, memory и feature-specific AI не запускались. Git-сдача BLOCKED по clean status из-за исходных DOC-001 hunks LEAD; нужны их отдельная сдача владельцем и повторная проверка. DONE не выставлен.
+
+## 2026-09-19 — QA / DEVOPS — FND-005
+- Проверены обязательные инструкции, статусы зависимостей, история Git и удалённая main: commits FND-002/FND-003/FND-004 доступны, но задачи остаются BLOCKED до сдачи DOC-001 и подтверждения LEAD.
+- FND-005 переведена в BLOCKED; Foundation gate не запускался согласно прямому условию заказчика. Отчёт LEAD сохранён в .ai/FND-005-REPORT.md.
+- Изменены только собственные записи QA в документации; исходные DOC-001 hunks LEAD сохраняются отдельно. Готовность Foundation/native/production не подтверждена.

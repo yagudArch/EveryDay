@@ -1,5 +1,15 @@
 # Активная работа
 
+## QA / DEVOPS — FND-005 BLOCKED (предварительная проверка зависимостей)
+- Поручение заказчика: Foundation gate только после завершения FND-002/FND-003/FND-004. Проверка выполнена 2026-09-19.
+- Резервирование: только собственный блок здесь, статус FND-005 в TASKS, append CHANGELOG и .ai/FND-005-REPORT.md. Код, contracts, CI, lockfile и архитектура не меняются.
+- Git: main → origin/main; исходный HEAD 251b4fddb39bd8220cc26a30a1daf45e520db6a6; индекс пуст. Git-операции записи QA выполняет QA последовательно, только со своими hunks. Исходные DOC-001 изменения LEAD в ACTIVE_WORK/PROJECT_STATE/TASKS остаются вне commit QA.
+- PASS: git ls-remote --heads origin main вернул 251b4fddb39bd8220cc26a30a1daf45e520db6a6; commits FND-002 92f642f и FND-003 754d081 являются его предками, FND-004 — сам HEAD.
+- FAIL prerequisite: все три зависимости имеют BLOCKED в TASKS и ACTIVE_WORK; подтверждение DONE от LEAD отсутствует, исходный git status содержит три изменённых .ai-файла DOC-001. Наличие опубликованного кода не подтверждает завершение задач.
+- Foundation gates NOT_RUN/BLOCKED: install/ci, build, tests, mobile export, typecheck, contracts, CI, fake production data и интеграция. Старые результаты других ролей не считаются текущими проверками QA. Для записи блокировки проверяются только MD diff/согласованность; application tests/build не запускаются по условию заказчика.
+- Ошибок выполненных Git-команд нет; блокировка организационная. Собственная запись подлежит commit/push; фактический SHA и результат отправки передаются в итоговом отчёте. Чистый общий status невозможен до сдачи DOC-001 владельцем; FND-005 не завершена даже при успешной отправке отчёта.
+- Адресат LEAD: отдельно сдать свои DOC-001 hunks, проверить clean status и завершение FND-002/FND-003/FND-004, подтвердить их DONE; затем разрешён повторный preflight FND-005. Подробный отчёт: .ai/FND-005-REPORT.md.
+
 ## AI ENGINEER — FND-004 BLOCKED (код готов к REVIEW; ожидается сдача DOC-001)
 - Прямое поручение заказчика: аудит существующего AI Foundation; без AI-001, voice, memory и feature-specific AI.
 - Резервирование: packages/ai/**; собственный блок FND-004, статус задачи и append CHANGELOG. Contracts, backend и архитектура — только чтение.
