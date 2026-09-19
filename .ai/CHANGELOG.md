@@ -62,3 +62,8 @@
 - Подтверждён remote CI run 35465046166: Ubuntu/Windows и все обязательные шаги success. Прежние npm ci/Expo/remote CI блокировки сняты.
 - Новый BLOCKER: тест migrations.test.ts:34 привязан к имени каталога EveryDay. Check в независимой копии — 225/226, исходный каталог — 226/226; точечное воспроизведение FAIL. Передано BACKEND/LEAD, код владельца не менялся. FND-005 остаётся BLOCKED.
 - Audit: 12 moderate (Vitest mocker, uuid через Expo tooling), omit=dev 10; опасный force downgrade не применялся. Подробный актуальный отчёт добавлен перед историей FND-005-REPORT.md; Git-сдача только документации.
+
+## 2026-09-19 — BACKEND — FND-005 portability repair
+- Устранена зависимость migration path test от имени папки EveryDay: проверяется точный корень относительно файла теста, сохранена проверка defaultMigrationsDir, добавлено наличие migration SQL. Production code, SQL и архитектура не менялись.
+- Регрессия воспроизведена до исправления в независимой копии migration-portability-regression после обычного npm ci. После исправления npm run check PASS в исходном и переименованном каталогах: по 226 tests / 24 files, все builds/typecheck.
+- Исправление передаётся на REVIEW; FND-005 не закрыта. QA должен повторить Foundation Gate после push.

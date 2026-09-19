@@ -1,6 +1,7 @@
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { routes } from '@everyday/contracts';
 import { AppError } from '../src/errors.js';
@@ -31,8 +32,10 @@ function withTempDir<T>(work: (dir: string) => T): T {
 
 describe('database migrations', () => {
   it('resolves stable repository paths from import.meta.url', () => {
-    expect(projectRoot.endsWith('EveryDay')).toBe(true);
+    const expectedRoot = resolve(fileURLToPath(new URL('../../../', import.meta.url)));
+    expect(projectRoot).toBe(expectedRoot);
     expect(defaultMigrationsDir).toBe(join(projectRoot, 'database', 'migrations'));
+    expect(statSync(join(defaultMigrationsDir, '0001_foundation.sql')).isFile()).toBe(true);
   });
 
   it('applies migrations once and is idempotent afterwards', () => {

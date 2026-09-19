@@ -1,5 +1,15 @@
 # Активная работа
 
+## BACKEND — FND-005 portability repair REVIEW
+- Прямое поручение заказчика: исправить только зависимость migration path test от имени каталога checkout; FND-005 не закрывать, после push передать повторный Foundation Gate QA.
+- Резервирование: apps/backend/tests/migrations.test.ts, собственный блок ACTIVE_WORK, append CHANGELOG. Runtime paths.ts, SQL migrations, архитектура, TASKS и отчёт QA не меняются.
+- Исходный Git: main → origin/main, HEAD c4590e8, дерево/индекс чистые. Git-сдачу этого исправления выполняет BACKEND последовательно.
+- Проверки: воспроизведение исходного FAIL в переименованной копии, затем полный npm run check в исходном checkout и независимой копии с другим именем, diff/identity, commit/push/clean status.
+- Воспроизведён исходный FAIL: vitest migrations.test.ts -t 'resolves stable repository paths' в C:/Users/Admin2/AppData/Local/Temp/migration-portability-regression (1 failed / 7 skipped). Копия создана git clone --no-hardlinks, обычный npm ci PASS (610 packages); прежние 12 moderate audit findings не исправлялись в этой узкой задаче.
+- Изменён только тест путей: точный projectRoot относительно import.meta.url файла теста вместо endsWith('EveryDay'); проверка defaultMigrationsDir сохранена, добавлена проверка наличия 0001_foundation.sql как файла. Runtime и SQL не менялись; исключений для QA нет.
+- npm run check PASS в C:/Users/Admin2/Desktop/EveryDay и C:/Users/Admin2/AppData/Local/Temp/migration-portability-regression: в каждом 226 tests / 24 files, builds contracts/AI/backend и mobile typecheck. Исправленный файл одинаков в обеих копиях (git diff применён без дополнительных изменений).
+- Передача LEAD/QA: после опубликованного исправления повторить Foundation Gate. FND-005 остаётся BLOCKED до решения QA/LEAD; этот REVIEW относится только к portability repair. Фактические commit SHA/push/clean status передаются итоговым сообщением после Git-сдачи.
+
 ## QA / DEVOPS — FND-005 BLOCKED; повторный Foundation gate
 - Заказчик подтвердил передачу FND-005 и Git-сдачи этому чату; другой QA остановлен. Его исходная незакоммиченная запись о FND-006 заменена этой согласованной передачей. FND-006 и feature-задачи здесь не выполняются.
 - Область сдачи: .ai/FND-005-REPORT.md, собственный блок ACTIVE_WORK, строка FND-005 TASKS, append CHANGELOG. Код/архитектура не изменены. PROJECT_STATE остаётся LEAD: актуальный результат для синхронизации — этот блок и отчёт.
