@@ -95,6 +95,7 @@ export async function createApp(options: CreateAppOptions): Promise<FastifyInsta
   });
 
   registerErrorHandling(app);
+  app.removeContentTypeParser('text/plain');
 
   await app.register(helmet, { global: true, contentSecurityPolicy: false });
   await app.register(cors, {
@@ -122,11 +123,14 @@ export async function createApp(options: CreateAppOptions): Promise<FastifyInsta
     }
   });
 
+  const aiLoad = options.ai ? null : await createAiGateway();
+  if (aiLoad?.warning) app.log.warn(aiLoad.warning);
+
   const context: AppContext = {
     db,
     now,
     env,
-    ai: options.ai ?? createAiGateway(),
+    ai: options.ai ?? aiLoad!.gateway,
     requireAuth: createRequireAuth(db, now),
   };
 

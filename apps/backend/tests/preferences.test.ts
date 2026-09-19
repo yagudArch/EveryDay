@@ -131,7 +131,7 @@ describe('preferences', () => {
       });
       expect(patch.statusCode).toBe(200);
     } finally {
-      await first.cleanup();
+      await first.app.close();
     }
 
     const second = await createHarness({ databasePath });
@@ -150,6 +150,7 @@ describe('preferences', () => {
       expect(preferences.theme).toBe('light');
     } finally {
       await second.cleanup();
+      await first.cleanup();
     }
   });
 });

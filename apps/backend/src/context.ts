@@ -11,5 +11,5 @@ export interface AppContext {
   env: Env;
   ai: AiGateway;
   /** Session authentication hook; attaches `request.principal` or throws 401. */
-  requireAuth: (request: FastifyRequest) => void;
+  requireAuth: (request: FastifyRequest) => Promise<void>;
 }

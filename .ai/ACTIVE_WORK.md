@@ -1,5 +1,17 @@
 # Активная работа
 
+## BACKEND — FND-002 BLOCKED (код готов к REVIEW; ожидается сдача DOC-001)
+- Поручение заказчика: аудит существующего Foundation Backend и исправление подтверждённых дефектов без изменения архитектуры.
+- Резервирование: apps/backend/**, database/**; только собственные записи FND-002 в .ai/ACTIVE_WORK.md, .ai/TASKS.md и добавление в .ai/CHANGELOG.md.
+- Зависимости: опубликованные contracts и AI читаются без изменений. Проверки: SQLite/migrations, auth/profile/preferences/context/subscription, persistence/isolation, expiry/trial, validation/API contracts, tests/build.
+- Git: main → origin/main, исходный HEAD ca21ac3; индекс пуст. Исходные изменения DOC-001 в трёх .ai-файлах принадлежат LEAD; заказчик подтвердил, что LEAD сдаст их самостоятельно. BACKEND не включает эти hunks в свой commit. До их сдачи финальный clean status заблокирован.
+- Единственный исполнитель Git-операций FND-002 — BACKEND; перед staging повторно проверить индекс и состояние общей рабочей копии.
+- Исправлено: зависающие Fastify preHandler (auth/rate limiter), await/unwrapping AI gateway, backend-типы из существующих schemas, runtime validation AI preview, JSON-only media type, нижняя граница trial. Исправлены два некорректных тестовых сценария (удаление БД до reopen, строка без Content-Type).
+- Аудит SQLite: SQL schema, bound queries, FK, WAL, migration checksums/idempotency, rollback и persistence проверены. Схема/миграции и архитектура не менялись. Auth/profile/preferences/context/subscription, ownership, memory opt-in и API/OpenAPI проверены.
+- Проверки: `npm run check` PASS — build contracts/AI/backend, mobile typecheck, 201 tests / 23 files. Новые audit tests: профиль и сохранённая сессия после reopen, rollback SQL migration и регистрации, goals/memory isolation, paid-period boundaries; отдельный regression нижней границы trial. Compiled HTTP smoke: GET /api/v1/health → 200, database=ok.
+- Независимый code review: PASS, security_concerns/logic_errors пусты; рекомендации низкого приоритета по cleanup тестовых временных файлов и усилению assertions не блокируют review. SHA/push передаются LEAD итоговым сообщением. DONE не выставляется. Native/device и production readiness вне FND-002; node:sqlite остаётся experimental по принятой архитектуре.
+- Блокировка сдачи: `git status --short` показывает исходные изменения LEAD в .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md, .ai/TASKS.md. Ошибки Git-команд пока нет. Требуемое действие LEAD: сдать только свои DOC-001 hunks, согласовав последовательность Git-операций; затем проверить общий clean status. BACKEND сдаёт только собственные hunks FND-002.
+
 ## LEAD / ARCHITECT — DOC-001 REVIEW
 - Задача заказчика: исправить только MD-документацию и процесс Git/завершения задач; не повторять инициализацию и не менять архитектуру или features.
 - Резервирование: MASTER_PROMPT.md, AGENTS.md, agent-roles/*.md, .ai/ACTIVE_WORK.md, .ai/TASKS.md, .ai/PROJECT_STATE.md, .ai/CHANGELOG.md. .ai/ARCHITECTURE.md — только чтение.

@@ -79,8 +79,8 @@ export function createRateLimitPreHandler(
   now: () => Date,
   keyPrefix: string,
   enabled = true,
-): (request: FastifyRequest, reply: FastifyReply) => void {
-  return (request, reply) => {
+): (request: FastifyRequest, reply: FastifyReply) => Promise<void> {
+  return async (request, reply) => {
     if (!enabled) return;
     const decision = limiter.check(`${keyPrefix}:${request.ip}`, now().getTime());
     if (!decision.allowed) {

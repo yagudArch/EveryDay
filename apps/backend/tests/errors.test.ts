@@ -118,7 +118,7 @@ describe('error handling and sanitization', () => {
         method: 'PATCH',
         url: routes.preferences,
         headers: bearer(user.token),
-        payload: '{}',
+        payload: {},
       });
       expect(response.statusCode).toBe(400);
       expect(ErrorResponseSchema.parse(response.json()).error.code).toBe('validation_error');

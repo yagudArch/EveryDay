@@ -1,4 +1,4 @@
-import type { Goal, MemoryFact, Preferences, Profile } from '@everyday/contracts';
+import type { TodayContext, Preferences, Profile } from '@everyday/contracts';
 import type { PreferencesData } from '../db/repositories/preferences.js';
 import type { GoalRecord, MemoryRecord } from '../db/repositories/profile-data.js';
 import type { UserRecord } from '../db/repositories/users.js';
@@ -26,7 +26,7 @@ export function toPreferencesDto(data: PreferencesData): Preferences {
   };
 }
 
-export function toGoalDto(record: GoalRecord): Goal {
+export function toGoalDto(record: GoalRecord): TodayContext['goals'][number] {
   return {
     id: record.id,
     type: record.type,
@@ -37,7 +37,7 @@ export function toGoalDto(record: GoalRecord): Goal {
   };
 }
 
-export function toMemoryFactDto(record: MemoryRecord): MemoryFact {
+export function toMemoryFactDto(record: MemoryRecord): TodayContext['memory'][number] {
   return {
     id: record.id,
     fact: record.fact,

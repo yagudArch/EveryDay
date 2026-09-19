@@ -1,4 +1,5 @@
-import type { Preferences, Profile, UpdatePreferencesInput, UpdateProfileInput } from '@everyday/contracts';
+import type { Preferences, Profile, UpdatePreferencesInput, UpdateProfileSchema } from '@everyday/contracts';
+import type { z } from 'zod';
 import { withTransaction, type Db } from '../db/connection.js';
 import { preferences, type PreferencesData } from '../db/repositories/preferences.js';
 import { users, type UserRecord } from '../db/repositories/users.js';
@@ -9,7 +10,7 @@ export function getProfile(user: UserRecord): Profile {
   return toProfileDto(user);
 }
 
-export function updateProfile(db: Db, userId: string, input: UpdateProfileInput, now: Date): Profile {
+export function updateProfile(db: Db, userId: string, input: z.infer<typeof UpdateProfileSchema>, now: Date): Profile {
   const updated = users.updateDisplayName(db, userId, input.displayName, now.toISOString());
   if (!updated) {
     throw new AppError('not_found', 404, 'Account not found');

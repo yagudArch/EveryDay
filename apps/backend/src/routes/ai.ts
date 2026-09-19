@@ -1,4 +1,4 @@
-import { ParseInputSchema, routes } from '@everyday/contracts';
+import { ActionPreviewSchema, ParseInputSchema, routes } from '@everyday/contracts';
 import type { FastifyInstance } from 'fastify';
 import { requirePrincipal } from '../auth/principal.js';
 import type { AppContext } from '../context.js';
@@ -46,7 +46,11 @@ export function registerAiRoutes(app: FastifyInstance, context: AppContext): voi
     const today = buildTodayContext(context.db, principal.user, context.now());
     try {
       const preview = await context.ai.parse(input.text, today);
-      reply.status(200).send(preview);
+      const parsed = ActionPreviewSchema.safeParse(preview);
+      if (!parsed.success) {
+        throw new AppError('ai_invalid_output', 502, 'AI provider returned an unexpected response shape');
+      }
+      reply.status(200).send(parsed.data);
     } catch (error) {
       // Sanitized: provider internals and the user's text never reach the response or the log.
       throw toAiAppError(error);

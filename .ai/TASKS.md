@@ -17,7 +17,7 @@
 | ID | Приоритет | Роль | Статус | Зависимости | Файлы | Результат и критерий готовности |
 |---|---|---|---|---|---|---|
 | FND-001 | P0 | LEAD | DONE | — | package.json, tsconfig*, packages/contracts/**, .ai/** | Стек сравнен, контракты опубликованы, области ролей закреплены до параллельной реализации |
-| FND-002 | P0 | BACKEND | REVIEW | FND-001 | apps/backend/**, database/** | SQLite migrations, auth/profile/preferences/context/subscription API; persistence, isolation, expiry и trial тесты |
+| FND-002 | P0 | BACKEND | BLOCKED | FND-001 | apps/backend/**, database/** | Аудит и исправления готовы к REVIEW; npm run check PASS (201 tests), compiled HTTP smoke PASS. Финальный clean status блокируют исходные DOC-001 hunks LEAD; подробности в ACTIVE_WORK. DONE подтверждает LEAD после Git-сдачи |
 | FND-003 | P0 | MOBILE | IN_PROGRESS | FND-001 | apps/mobile/** | Native Expo UI, navigation/design system, реальный auth/API, SecureStore, настройки и контекст; no auto-mic; typecheck и Metro bundle |
 | FND-004 | P0 | AI ENGINEER | REVIEW | FND-001 | packages/ai/** | Provider port, capability/consent guards, validated structured preview, явный unavailable; unit tests; нет DB writes |
 | FND-005 | P0 | QA/DEVOPS + LEAD | TODO | FND-002, FND-003, FND-004 | scripts/**, .github/**, lockfile, .ai/** | npm install/ci, build, test, mobile export, CI, diff; отчёт с честными ограничениями |

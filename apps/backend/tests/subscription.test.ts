@@ -11,6 +11,17 @@ async function readSubscription(app: Parameters<typeof registerUser>[0], token: 
 }
 
 describe('subscription entitlement and 7-day trial', () => {
+  it('does not grant premium before the trial starts', async () => {
+    const harness = await createHarness();
+    try {
+      const user = await registerUser(harness.app);
+      harness.clock.advance(-1);
+      expect((await readSubscription(harness.app, user.token)).premium).toBe(false);
+    } finally {
+      await harness.cleanup();
+    }
+  });
+
   it('grants a trial of exactly 7 x 24 hours at registration', async () => {
     const harness = await createHarness();
     try {

@@ -53,8 +53,8 @@ export function authenticate(db: Db, authorization: string | undefined, now: Dat
 }
 
 /** Hook factory used as a route `preHandler`; throws 401 through the error envelope. */
-export function createRequireAuth(db: Db, now: () => Date): (request: FastifyRequest) => void {
-  return (request) => {
+export function createRequireAuth(db: Db, now: () => Date): (request: FastifyRequest) => Promise<void> {
+  return async (request) => {
     request.principal = authenticate(db, request.headers.authorization, now());
   };
 }

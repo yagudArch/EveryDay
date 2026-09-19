@@ -42,7 +42,7 @@ export function computeEntitlement(record: SubscriptionRecord, now: Date): Entit
   switch (record.status) {
     case 'trial':
       return now.getTime() < Date.parse(record.trialEndsAt)
-        ? { ...base, status: 'trial', premium: true }
+        ? { ...base, status: 'trial', premium: now.getTime() >= Date.parse(record.trialStartedAt) }
         : { ...base, status: 'expired_trial', premium: false };
     case 'active':
       return hasTimeLeft(record.currentPeriodEndsAt, now)
