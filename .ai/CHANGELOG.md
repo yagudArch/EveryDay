@@ -55,3 +55,10 @@
 - Обновлён mobile manifest, lockfile восстановлен npm и dedupe с устранением native-дубликатов; логика приложения и QA smoke/workflow не менялись.
 - Обычный npm ci в отдельной чистой копии без node_modules PASS (610 packages), Expo check PASS; check 226 tests / 24 files, smoke 2/2 и Metro Android/iOS/web PASS. Сеть давала ECONNRESET при подготовке cache; финальный npm ci прошёл. Audit: 12 moderate, передано QA без автоматического audit fix.
 - Отдельно учтены P2 stale context после timezone change и GET/PATCH race в MOB-001. FND-005 остаётся BLOCKED до повторного полного QA gate/CI; исправление передано на REVIEW.
+
+## 2026-09-19 — QA / DEVOPS — повторный FND-005 на cd55dcd
+- По подтверждённой передаче от остановленного QA выполнен независимый Foundation gate в новой Git-копии с чистым npm ci; FND-006 и feature-задачи не запускались.
+- PASS: builds contracts/AI/backend, mobile typecheck, Expo compatibility, Metro Android/iOS/web, smoke 2/2, migration CLI apply/skip. Auth/session, isolation/persistence, trial, contracts и AI регрессии проверены собственными запусками.
+- Подтверждён remote CI run 35465046166: Ubuntu/Windows и все обязательные шаги success. Прежние npm ci/Expo/remote CI блокировки сняты.
+- Новый BLOCKER: тест migrations.test.ts:34 привязан к имени каталога EveryDay. Check в независимой копии — 225/226, исходный каталог — 226/226; точечное воспроизведение FAIL. Передано BACKEND/LEAD, код владельца не менялся. FND-005 остаётся BLOCKED.
+- Audit: 12 moderate (Vitest mocker, uuid через Expo tooling), omit=dev 10; опасный force downgrade не применялся. Подробный актуальный отчёт добавлен перед историей FND-005-REPORT.md; Git-сдача только документации.

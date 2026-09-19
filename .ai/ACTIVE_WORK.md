@@ -1,5 +1,15 @@
 # Активная работа
 
+## QA / DEVOPS — FND-005 BLOCKED; повторный Foundation gate
+- Заказчик подтвердил передачу FND-005 и Git-сдачи этому чату; другой QA остановлен. Его исходная незакоммиченная запись о FND-006 заменена этой согласованной передачей. FND-006 и feature-задачи здесь не выполняются.
+- Область сдачи: .ai/FND-005-REPORT.md, собственный блок ACTIVE_WORK, строка FND-005 TASKS, append CHANGELOG. Код/архитектура не изменены. PROJECT_STATE остаётся LEAD: актуальный результат для синхронизации — этот блок и отчёт.
+- Проверен cd55dcdf5375b0839c9ce2008380da6341ad21bb, main → origin/main; live remote совпал, ancestry реализаций подтверждено, индекс исходно пуст. Единственный исполнитель Git-сдачи — текущий QA.
+- Чистая независимая копия C:/Users/Admin2/AppData/Local/Temp/everyday-fnd005-gate-current: npm ci PASS (610 packages), build contracts/AI/backend PASS, mobile typecheck PASS, Expo check PASS, Metro Android/iOS/web PASS; smoke HTTP/Mobile/compiled Backend/AI/SQLite 2/2 PASS; migration CLI applied 0001, повтор skipped 0001.
+- BLOCKER: npm run check в независимой копии exit 1, 225/226 tests PASS. apps/backend/tests/migrations.test.ts:34 требует projectRoot.endsWith('EveryDay'); отдельный vitest -t 'resolves stable repository paths' подтверждает FAIL. В исходном каталоге EveryDay check PASS 226/226. Это дефект переносимости теста, не отказ миграций. BACKEND/LEAD: заменить зависимость от имени checkout проверкой структуры/реальных путей; затем повторить gate в произвольно названной чистой копии. Чужой backend test не исправлялся QA без назначения.
+- CI cd55dcd подтверждён через GitHub API: run 35465046166, ubuntu-latest и windows-latest success, каждый обязательный шаг success. Предыдущие lockfile/Expo/remote-CI блокеры сняты; зелёный CI не отменяет найденный локальный FAIL.
+- npm audit exit 1: 12 moderate (2 advisory chains: Vitest mocker и uuid/xcode/Expo); omit=dev — 10 moderate. Передано LEAD для отдельного dependency/security решения; force-fix предлагает несовместимые версии, не применялся. Native/device/live AI вне подтверждённого Foundation PASS. P2 MOBILE risks из MOB-001 сохраняются, UI reproduction не заявляется.
+- Git-сдача отчёта: diff/identity → адресный add → commit → push origin/main → live remote и clean status. Фактический SHA/push/status передаются итоговым сообщением; FND-005 остаётся BLOCKED независимо от успешной сдачи документации.
+
 ## LEAD / MOBILE — FND-005 dependency repair REVIEW; повторный gate QA
 - Прямое поручение заказчика: согласовать Expo/RN и восстановить воспроизводимый npm ci. Исходный HEAD 9bf86b4, main → origin/main, дерево/индекс чистые.
 - Резервирование: apps/mobile/package.json, package-lock.json, .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md, .ai/TASKS.md, append .ai/CHANGELOG.md. LEAD выполняет изменения и Git-операции последовательно; код приложения, QA smoke/workflow и отчёт QA сохраняются.
@@ -9,7 +19,7 @@
 - Передача QA/DEVOPS: повторить полный Foundation gate и CI matrix на опубликованном commit. FND-005 остаётся BLOCKED до независимого успешного повторного gate; локальные проверки LEAD не являются его закрытием. Git-сдача исправления: проверка diff/identity, commit/push origin/main и clean status; SHA передаётся итоговым отчётом.
 - Отдельные P2 Mobile риски (статический QA-аудит, runtime reproduction ещё нет): stale TodayContext после смены timezone; запоздалый GET перезаписывает результат PATCH, поскольку setData не инвалидирует pending request. Владелец MOBILE, учёт в MOB-001; в dependency repair логика не меняется.
 
-## QA / DEVOPS — FND-005 BLOCKED (Foundation gate FAIL)
+## История: QA / DEVOPS — FND-005 BLOCKED (первый Foundation gate FAIL)
 - Зависимости DONE; live origin/main 31a79b8 и ancestry реализаций проверены; исходное дерево и индекс чистые.
 - Резервирование: scripts/**, .github/**, собственный блок ACTIVE_WORK, строка FND-005 TASKS, append CHANGELOG, FND-005-REPORT.md. QA выполняет Git-операции последовательно. Код модулей и архитектура только читаются.
 - Проверки: npm ci, общий check, Metro export, migrations/HTTP, сквозная Mobile/Backend/AI интеграция, contracts, CI, отсутствие fake production data. Результаты фиксируются по собственным запускам.

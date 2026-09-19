@@ -1,6 +1,60 @@
 # FND-005 — отчёт QA / DEVOPS для LEAD
 
-## Актуальный Foundation gate — 2026-09-19 — FAIL / BLOCKED
+## Актуальный повторный Foundation gate — 2026-09-19 — BLOCKED
+
+Проверяемый код: `cd55dcdf5375b0839c9ce2008380da6341ad21bb`, main → origin/main. Live remote SHA и ancestry FND-002/FND-003/FND-004 проверены самостоятельно. Заказчик передал FND-005/Git-сдачу этому чату и подтвердил остановку другого QA; исходная запись FND-006 в ACTIVE_WORK заменена согласованной передачей. FND-006 не выполнялась.
+
+Проверки с нуля: `git clone --no-hardlinks . "$LOCALAPPDATA/Temp/everyday-fnd005-gate-current"`; в новой копии отсутствовали node_modules и build artifacts. Код и manifests совпадают с cd55dcd. Окружение: Windows x64, Node 22.23.2, npm 10.9.8, SQLite 3.51.3, Git 2.53.0.windows.2.
+
+| Gate / команда | Собственный результат QA |
+|---|---|
+| `npm ci` в новой копии | PASS, exit 0, 610 packages; прежняя EUSAGE не воспроизводится |
+| `npm run check` в новой копии | FAIL, exit 1: 225 passed / 1 failed, 24 files; причина ниже |
+| `npm run check` в исходном EveryDay | PASS, exit 0: 226 tests / 24 files |
+| Build contracts / AI / backend | PASS в обоих check; повторно в migration CLI |
+| Mobile typecheck | PASS, `tsc --noEmit` в обоих check |
+| Contracts / OpenAPI | PASS: 4 OpenAPI tests, strict schemas, mobile HTTP response parsing, AI invalid output rejection |
+| Backend auth/session | PASS: auth 7, sessions 4; missing/malformed token, expiry boundary, logout revocation, ownership, persistence |
+| Persistence / isolation | PASS: context 6, foundation-audit 7, preferences 5; SQLite reopen, transaction rollback, goals/memory opt-in и cross-user isolation |
+| Database / migrations | 7/8 migration tests PASS в новой копии, все 8 в исходной; единственный FAIL — имя checkout, не SQL. CLI `npm run db:migrate` applied 0001; повтор workspace CLI skipped 0001 |
+| Subscription/trial | PASS: subscription 5, paid active/grace/cancelled boundary cases в foundation-audit, mobile subscription 6; серверный half-open trial, запрет клиентского entitlement PATCH |
+| AI | PASS: service 58 + privacy 8 + disabled 8; backend AI 9. Consent/capability/timeout/cancellation/output guards, минимальный outbound context, preview-only |
+| Backend ↔ Mobile ↔ AI / HTTP | PASS: `node --import tsx --test scripts/foundation-smoke.mjs`, 2/2. Compiled backend/AI, настоящий mobile client, loopback HTTP, файловая SQLite, restart, health, auth, 503 disabled, consent и отсутствие preview writes |
+| Expo versions | PASS: `npm exec -w @everyday/mobile -- expo install --check`, Dependencies are up to date |
+| Mobile export | PASS: `CI=1 npm run build:mobile`, Android/iOS Hermes bundles и web JS; Metro 849/869/554 modules соответственно |
+| Fake production data | В просмотренных runtime service/schema/UI путях не обнаружены seeded пользовательские факты или mock-success AI. Context возвращает unavailable/null; goals/memory по реальным данным; тестовый provider ограничен smoke/tests |
+| CI matrix на cd55dcd | PASS: GitHub Actions run 35465046166, оба jobs и каждый обязательный шаг success |
+| `npm audit` | exit 1: 12 moderate, 0 high/critical в выводе; omit=dev: 10 moderate. Оценка ниже |
+| Git consistency | Live origin/main равен cd55dcd, implementation ancestors подтверждены; исходно только переданная QA запись, индекс пуст. Финальные SHA/push/status — в итоговом сообщении после сдачи |
+
+Числа по подсистемам — части общей suite, не дополнительные тесты. Smoke — отдельные два теста. Нельзя объединять 226/226 из исходного каталога с чистой установкой в другой копии и заявлять полный PASS последней.
+
+### Блокирующая находка: непереносимый migration test
+
+- Severity: blocker для воспроизводимого gate; дефект тестовой инфраструктуры, отказ runtime migrations не установлен.
+- Component/owner: `apps/backend/tests/migrations.test.ts:34`, BACKEND; координация LEAD.
+- Environment: новая копия `C:/Users/Admin2/AppData/Local/Temp/everyday-fnd005-gate-current`, Node 22.23.2/npm 10.9.8, обычный успешный npm ci.
+- Reproduction: `npm run check`; минимально `npm exec -- vitest run apps/backend/tests/migrations.test.ts -t 'resolves stable repository paths'`.
+- Expected: одинаковый результат при допустимом произвольном имени checkout.
+- Actual: exit 1, `expect(projectRoot.endsWith('EveryDay')).toBe(true)` получает false; точечный повтор 1 failed / 7 skipped. В исходном каталоге EveryDay все 226 проходят.
+- Root cause: тест проверяет локальное имя папки вместо правильности вычисленных путей. `src/db/paths.ts` вычисляет путь относительно import.meta.url; CLI и реальные миграции работают в независимой копии.
+- Required action: BACKEND/LEAD заменить basename assertion проверкой реальной структуры/пути, сохранить проверки defaultMigrationsDir и выполнить gate в произвольно названной чистой копии. QA не менял backend test за пределами согласованного ownership. FND-005 остаётся BLOCKED до успешного повтора.
+
+### CI и dependency audit
+
+[Подтверждённый CI run](https://github.com/yagudArch/EveryDay/actions/runs/35465046166) относится точно к cd55dcd. GET runs API HTTP 200; GET jobs API вернул 2 jobs: foundation (ubuntu-latest), foundation (windows-latest), оба completed/success. Проверены шаги npm ci, check, smoke, migrations, Expo check, build:mobile: все success. Прежняя недоступность remote Actions снята. GitHub checkout называется EveryDay, поэтому этот зелёный CI не обнаруживает basename defect.
+
+Audit показывает две advisory chains: `@vitest/mocker` GHSA-82fw-gwwq-j7x9 (dev test tooling) и `uuid` GHSA-w5hq-g745-h8pq через xcode/Expo config tooling. 12 — количество затронутых package entries, не число уникальных advisory; omit=dev оставляет Expo tooling и 10 entries. Это не доказательство эксплуатации backend/mobile runtime. LEAD должен согласовать совместимое обновление и оценку build/test exposure в рамках dependency/security работы. `npm audit fix --force` предлагает vitest 5.0.1 и expo 46.0.21 с breaking changes, не применялся. Отдельный FAIL обязательного check достаточен для BLOCKED независимо от security disposition.
+
+### Границы и дополнительные замечания
+
+Native APK/IPA, device SecureStore, cold-launch microphone и live AI provider не подтверждены: adb/docker отсутствуют в PATH, ANDROID_HOME не задан, iOS требует macOS/Xcode. Эти проверки выделены архитектурой в отдельные native/production gates; здесь проверены Metro и Foundation adapters. По app.json/исходникам capture/permission API микрофона отсутствуют, кнопка «Сказать» disabled; это статическое подтверждение, не device E2E.
+
+Ранее переданные P2 MOBILE risks (MOB-001) по GET/PATCH race и timezone invalidation остаются по исходникам; runtime UI reproduction в этом gate не заявляется. Дополнительно `HomeScreen.tsx:49` пишет «Сейчас гардероб пуст», хотя contract возвращает unavailable: нет выдуманных вещей, но формулировку следует согласовать с MOBILE/LEAD как unknown вместо empty. Код UI не изменён.
+
+Сдача: только ACTIVE_WORK, строка FND-005 TASKS, append CHANGELOG и отчёт. PROJECT_STATE для синхронизации остаётся LEAD; архитектура, production code и зависимости не менялись. Успешный commit/push документации не снимает BLOCKED. Точный SHA и чистота дерева фиксируются через Git после push и передаются итоговым сообщением.
+
+## История: первый Foundation gate — 2026-09-19 — FAIL / BLOCKED
 
 Исходный commit 31a79b8c615c2c51878a22ce529f72ed9b28a70e, main → origin/main, дерево чистое. Зависимости DONE и ancestry 92f642f/754d081/251b4fd проверены через fetch/live remote. Ниже приведены собственные запуски QA; исторический preflight сохранён отдельным разделом.
 
