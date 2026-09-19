@@ -49,3 +49,9 @@
 - Выявлены блокеры воспроизводимости: npm ci EUSAGE (несогласованный lockfile), Expo compatibility check FAIL. Переданы LEAD/MOBILE без изменения чужих manifests/lockfile.
 - Исправлен вызов отсутствующего npm run smoke в CI: добавлен scripts/foundation-smoke.mjs и прямой запуск в workflow; 2 сквозных теста Mobile/Backend/AI PASS, независимый review PASS.
 - FND-005 BLOCKED, Foundation/native/production readiness не объявляется. Детальные команды, владельцы и ограничения — FND-005-REPORT.md.
+
+## 2026-09-19 — LEAD / MOBILE — FND-005 dependency repair
+- Воспроизведены npm ci EUSAGE и четыре Expo mismatch; согласованы Expo 57.0.24, @expo/metro-runtime 57.0.16, safe-area 5.7.0, screens 4.26.2 при неизменных React 19.2.3/RN 0.86.3.
+- Обновлён mobile manifest, lockfile восстановлен npm и dedupe с устранением native-дубликатов; логика приложения и QA smoke/workflow не менялись.
+- Обычный npm ci в отдельной чистой копии без node_modules PASS (610 packages), Expo check PASS; check 226 tests / 24 files, smoke 2/2 и Metro Android/iOS/web PASS. Сеть давала ECONNRESET при подготовке cache; финальный npm ci прошёл. Audit: 12 moderate, передано QA без автоматического audit fix.
+- Отдельно учтены P2 stale context после timezone change и GET/PATCH race в MOB-001. FND-005 остаётся BLOCKED до повторного полного QA gate/CI; исправление передано на REVIEW.

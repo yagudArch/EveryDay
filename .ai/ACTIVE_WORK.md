@@ -1,5 +1,14 @@
 # Активная работа
 
+## LEAD / MOBILE — FND-005 dependency repair REVIEW; повторный gate QA
+- Прямое поручение заказчика: согласовать Expo/RN и восстановить воспроизводимый npm ci. Исходный HEAD 9bf86b4, main → origin/main, дерево/индекс чистые.
+- Резервирование: apps/mobile/package.json, package-lock.json, .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md, .ai/TASKS.md, append .ai/CHANGELOG.md. LEAD выполняет изменения и Git-операции последовательно; код приложения, QA smoke/workflow и отчёт QA сохраняются.
+- Воспроизведено: npm ci --dry-run — EUSAGE, lockfile содержит старые safe-area/screens; Expo check — четыре mismatch. Решение LEAD: Expo ~57.0.24, @expo/metro-runtime ~57.0.16, safe-area ~5.7.0, screens ~4.26.0; React 19.2.3 / RN 0.86.3 сохраняются. Lockfile генерируется npm, без legacy-peer-deps/force.
+- Проверено: обычный npm ci в отдельной копии HEAD + исправленные manifests/lockfile без node_modules — PASS (610 packages); Expo check PASS. Общий check PASS (226 tests / 24 files), QA smoke 2/2 PASS, Metro Android/iOS/web PASS. npm ls подтверждает единственные safe-area 5.7.0 / screens 4.26.2, включая navigation peers.
+- Lockfile восстановлен npm install --package-lock-only и npm dedupe --package-lock-only; dedupe также согласовал transitive parser/bplist зависимости и обновил fast-uri/lru-cache. Сетевой ECONNRESET обойдён загрузкой официального fast-uri tarball через curl в npm cache; integrity проверяет npm. Финальный обычный npm ci прошёл без обходных флагов. npm audit при установке: 12 moderate, передано QA; автоматический audit fix не выполнялся.
+- Передача QA/DEVOPS: повторить полный Foundation gate и CI matrix на опубликованном commit. FND-005 остаётся BLOCKED до независимого успешного повторного gate; локальные проверки LEAD не являются его закрытием. Git-сдача исправления: проверка diff/identity, commit/push origin/main и clean status; SHA передаётся итоговым отчётом.
+- Отдельные P2 Mobile риски (статический QA-аудит, runtime reproduction ещё нет): stale TodayContext после смены timezone; запоздалый GET перезаписывает результат PATCH, поскольку setData не инвалидирует pending request. Владелец MOBILE, учёт в MOB-001; в dependency repair логика не меняется.
+
 ## QA / DEVOPS — FND-005 BLOCKED (Foundation gate FAIL)
 - Зависимости DONE; live origin/main 31a79b8 и ancestry реализаций проверены; исходное дерево и индекс чистые.
 - Резервирование: scripts/**, .github/**, собственный блок ACTIVE_WORK, строка FND-005 TASKS, append CHANGELOG, FND-005-REPORT.md. QA выполняет Git-операции последовательно. Код модулей и архитектура только читаются.
@@ -11,7 +20,7 @@
 - Адресат LEAD: согласовать исправление manifests/lockfile с MOBILE и повторить чистый npm ci, Expo check и CI matrix. До устранения блокеров FND-005 не DONE. Собственные результаты подлежат commit/push; SHA и финальный status передаются итоговым сообщением.
 - Статический аудит MOBILE: useAsyncResource.setData не инвалидирует pending GET; Home не перезагружает TodayContext при смене timezone. P2, UI reproduction не выполнялся; код и точные сценарии в FND-005-REPORT.md, переданы MOBILE/LEAD без изменения чужого модуля.
 
-## LEAD / ARCHITECT — DOC-001 DONE; Foundation передан QA/DEVOPS
+## История: LEAD / ARCHITECT — DOC-001 DONE; первоначальная передача QA/DEVOPS
 - Резервирование 2026-09-19: .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md, .ai/TASKS.md, append .ai/CHANGELOG.md. Единственный исполнитель Git-операций — LEAD. Код, contracts, архитектура и результаты агентов сохраняются.
 - Исходный Git: main → origin/main, HEAD 33610f11302e1b46a1f35acc9279af3738ca4d41; индекс пуст, изменены только три исходных файла DOC-001: ACTIVE_WORK, PROJECT_STATE, TASKS.
 - После git fetch origin и проверки live remote подтверждено: FND-002 92f642f, FND-003 754d081, FND-004 251b4fd — предки origin/main; отчёт QA опубликован в 33610f1. Identity соответствует существующей истории, не изменялась.
