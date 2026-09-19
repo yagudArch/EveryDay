@@ -1,5 +1,17 @@
 # Активная работа
 
+## MOBILE — FND-003 BLOCKED (реализация проверена; ожидается Git-сдача)
+- Прямое поручение заказчика: продолжить существующую Mobile Foundation, не менять стек и не начинать feature-задачи.
+- Резервирование: apps/mobile/**; собственный блок FND-003 в ACTIVE_WORK, статус FND-003 в TASKS и добавление в CHANGELOG. Backend/contracts/root config — только чтение.
+- Git: main → origin/main, исходный HEAD 92f642f, индекс пуст. Исходные DOC-001 hunks LEAD в ACTIVE_WORK/PROJECT_STATE/TASKS сохраняются и не включаются в commit MOBILE. Финальный clean status зависит от их сдачи LEAD.
+- Проверки: mobile regression tests, общий check/build, Metro export Android/iOS/web; проверка no-auto-microphone. Native device gates остаются OPS-001.
+- Git-операции FND-003 выполняет MOBILE последовательно, с повторной проверкой общего индекса перед staging.
+- Исправлено: timeout чтения HTTP body, изоляция публичных/устаревших 401 и успешных ответов старой сессии; публикация bearer только после успешного сохранения в SecureStore adapter.
+- Проверено: `npm run check` PASS — builds, mobile typecheck, 208 tests / 24 files. `npm run build:mobile` PASS — Android/iOS Hermes bundles и web export. Новый mobile API integration test выполняет register/profile/preferences/context/logout/login через реальный HTTP и файловую SQLite. Backend/contracts/стек не менялись.
+- Navigation, light/dark design system, loading/error/empty states сохранены. В mobile sources/config нет capture/permission API микрофона; кнопка «Сказать» disabled. Native cold launch и SecureStore на устройстве не заявляются: OPS-001.
+- Независимый review: PASS, security_concerns и logic_errors пусты. Неблокирующие рекомендации: усилить cleanup временной SQLite при ошибке и расширить edge-case tests HTTP body.
+- Блокировка: исходные незакоммиченные DOC-001 hunks LEAD в .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md, .ai/TASKS.md препятствуют чистому общему status. Требуется отдельная сдача владельцем LEAD; MOBILE чужие hunks не включает. Результат подготовлен к REVIEW, но статус BLOCKED до чистого дерева; фактические SHA и push передаются LEAD итоговым сообщением. Ошибок Git-команд на момент подготовки нет. DONE не выставляется.
+
 ## BACKEND — FND-002 BLOCKED (код готов к REVIEW; ожидается сдача DOC-001)
 - Поручение заказчика: аудит существующего Foundation Backend и исправление подтверждённых дефектов без изменения архитектуры.
 - Резервирование: apps/backend/**, database/**; только собственные записи FND-002 в .ai/ACTIVE_WORK.md, .ai/TASKS.md и добавление в .ai/CHANGELOG.md.

@@ -227,8 +227,9 @@ export class HttpClient {
     const timeoutMs = options.timeoutMs ?? this.timeoutMs;
     const headers: Record<string, string> = { Accept: 'application/json' };
 
+    const requestToken = options.auth ? this.getToken() : null;
     if (options.auth) {
-      const token = this.getToken();
+      const token = requestToken;
       if (token !== null && token !== '') {
         headers.Authorization = `Bearer ${token}`;
       }
@@ -249,14 +250,16 @@ export class HttpClient {
       controller.abort();
     }, timeoutMs);
 
-    const sendOnce = async (): Promise<ResponseLike> => {
+    const sendOnce = async (): Promise<{ response: ResponseLike; text: string }> => {
       try {
-        return await this.fetchImpl(`${this.baseUrl}${options.route}`, {
+        const response = await this.fetchImpl(`${this.baseUrl}${options.route}`, {
           method: options.method,
           headers,
           body,
           signal: controller.signal,
         });
+        const text = await response.text();
+        return { response, text };
       } catch (error) {
         const aborted = controller.signal.aborted || (error instanceof Error && error.name === 'AbortError');
         if (aborted) {
@@ -272,20 +275,13 @@ export class HttpClient {
       }
     };
 
-    const response = await sendOnce();
-
-    let text = '';
-    try {
-      text = await response.text();
-    } catch {
-      text = '';
-    }
+    const { response, text } = await sendOnce();
 
     if (!response.ok) {
       const info = parseErrorBody(text);
 
       if (response.status === 401) {
-        this.onUnauthorized();
+        if (options.auth && requestToken === this.getToken()) this.onUnauthorized();
         throw new ApiError(info?.message ?? defaultErrorMessage(401), {
           code: info?.code ?? 'unauthorized',
           status: 401,
@@ -301,6 +297,9 @@ export class HttpClient {
       });
     }
 
+    if (options.auth && requestToken !== this.getToken()) {
+      throw new ApiError('Сессия изменилась. Запросите данные снова.', { code: 'session_changed' });
+    }
     return { status: response.status, text };
   }
 }

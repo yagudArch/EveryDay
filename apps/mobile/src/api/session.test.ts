@@ -7,6 +7,7 @@ import {
   getSessionToken,
   isSessionExpired,
   notifyUnauthorized,
+  persistSession,
   setSession,
   setUnauthorizedHandler,
 } from './session';
@@ -17,6 +18,25 @@ afterEach(() => {
 });
 
 describe('сессия в памяти', () => {
+  it('не активирует сессию, если SecureStore отклонил запись', async () => {
+    await expect(persistSession({ token: 'new', expiresAt: null }, async () => {
+      throw new Error('SecureStore unavailable');
+    })).rejects.toThrow('SecureStore unavailable');
+    expect(getActiveSession()).toBeNull();
+  });
+
+  it('активирует сессию только после завершения записи', async () => {
+    let finish!: () => void;
+    const stored = { token: 'saved', expiresAt: '2030-01-01T00:00:00.000Z' };
+    const write = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
+    const pending = persistSession(stored, write);
+    expect(getActiveSession()).toBeNull();
+    expect(write).toHaveBeenCalledWith(stored);
+    finish();
+    await pending;
+    expect(getActiveSession()).toEqual(stored);
+  });
+
   it('сохраняет и отдаёт токен', () => {
     expect(getSessionToken()).toBeNull();
     setSession('token-1', '2030-01-01T00:00:00.000Z');

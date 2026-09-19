@@ -46,6 +46,56 @@ describe('parseErrorBody', () => {
 });
 
 describe('HttpClient', () => {
+  it('отклоняет успешный ответ старой сессии после выхода', async () => {
+    let token: string | null = 'session';
+    let finish!: (value: ResponseLike) => void;
+    const api = client(() => new Promise((resolve) => { finish = resolve; }), { getToken: () => token });
+    const pending = captureError(api.get('/api/v1/preferences', (input) => input));
+    token = null;
+    finish(response(200, { city: 'Private city' }));
+    expect((await pending).code).toBe('session_changed');
+  });
+
+  it('не сбрасывает сессию при неверном пароле на публичном endpoint', async () => {
+    const onUnauthorized = vi.fn();
+    const api = client(async () => response(401, ''), { onUnauthorized });
+    await expect(api.post('/api/v1/auth/login', {}, (input) => input, { auth: false })).rejects.toMatchObject({ status: 401 });
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
+  it('не сбрасывает новую сессию из-за запоздалого 401 старой', async () => {
+    let token = 'old-session';
+    const onUnauthorized = vi.fn();
+    let finish!: (value: ResponseLike) => void;
+    const api = client(() => new Promise((resolve) => { finish = resolve; }), {
+      getToken: () => token, onUnauthorized,
+    });
+    const pending = captureError(api.get('/api/v1/me', (input) => input));
+    token = 'new-session';
+    finish(response(401, ''));
+    expect((await pending).status).toBe(401);
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
+  it('ограничивает timeout также чтение тела ответа', async () => {
+    vi.useFakeTimers();
+    try {
+      const api = client(async (_url, init) => ({
+        ok: true, status: 200,
+        text: () => new Promise<string>((resolve, reject) => {
+          init.signal?.addEventListener('abort', () => reject(new Error('Aborted')));
+          setTimeout(() => resolve('{}'), 100);
+        }),
+      }));
+      const pending = api.get('/api/v1/me', (input) => input, { timeoutMs: 10 });
+      const settled = pending.then((value) => ({ value }), (error: unknown) => ({ error }));
+      await vi.advanceTimersByTimeAsync(100);
+      expect(await settled).toMatchObject({ error: { code: 'timeout', retryable: true } });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('формирует URL из base URL и контрактного route без авторизации', async () => {
     const fetchImpl = vi.fn(async () => response(200, { status: 'ok', database: 'ok' }));
     const api = client(fetchImpl as unknown as FetchLike);

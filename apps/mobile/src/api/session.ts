@@ -15,6 +15,15 @@ export interface ActiveSession {
   expiresAt: string | null;
 }
 
+/** Не публикуем bearer-токен до успешной записи в хранилище. */
+export async function persistSession(
+  session: ActiveSession,
+  write: (session: ActiveSession) => Promise<void>,
+): Promise<void> {
+  await write(session);
+  setSession(session.token, session.expiresAt);
+}
+
 function toEpochMs(isoTimestamp: string | null): number | null {
   if (isoTimestamp === null) return null;
   const parsed = Date.parse(isoTimestamp);

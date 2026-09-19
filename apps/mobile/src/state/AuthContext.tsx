@@ -3,7 +3,7 @@ import type { AuthResponse, LoginInput, Profile, RegisterInput } from '@everyday
 
 import { api, tokenStorage } from '../api';
 import { assertUpdateProfileInput } from '../api/endpoints';
-import { clearSession, getActiveSession, isSessionExpired, setSession, setUnauthorizedHandler } from '../api/session';
+import { clearSession, getActiveSession, isSessionExpired, persistSession, setSession, setUnauthorizedHandler } from '../api/session';
 import type { StoredSession } from '../storage/tokenStorage';
 import { errorMessage } from '../utils/asyncState';
 
@@ -35,8 +35,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
 
   const applySession = useCallback(async (response: AuthResponse) => {
-    setSession(response.token, response.expiresAt);
-    await tokenStorage.writeSession({ token: response.token, expiresAt: response.expiresAt });
+    await persistSession(
+      { token: response.token, expiresAt: response.expiresAt },
+      (session) => tokenStorage.writeSession(session),
+    );
     setProfile(response.user);
     setRestoreError(null);
     setStatus('authenticated');

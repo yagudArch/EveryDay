@@ -13,3 +13,10 @@
 - Исправлены Fastify hooks, инициализация AI gateway, backend type imports, проверка AI preview, JSON media type и начало trial. Архитектура, contracts и SQL schema не изменены.
 - Исправлены ошибочные fixtures persistence/JSON; добавлены проверки rollback, profile/session persistence, goals/memory isolation, trial start и paid-period expiry.
 - npm run check: PASS, 201 tests / 23 files, builds и mobile typecheck; compiled HTTP health smoke: 200/database ok. Сдача BLOCKED до commit/push и чистого общего дерева, включая отдельную сдачу DOC-001 владельцем LEAD; DONE не выставлен.
+
+## 2026-09-19 — MOBILE — FND-003
+- Продолжена существующая Expo/React Native foundation без изменения стека, Backend и contracts; новые feature-задачи не запускались.
+- Исправлены timeout чтения HTTP body, сброс сессии при публичном/устаревшем 401, приём успешных ответов старой сессии и активация bearer до успешной записи хранилища.
+- Добавлены регрессии и mobile API integration через настоящий HTTP/SQLite: register/profile/preferences/context/logout/login.
+- Проверки: npm run check PASS (208 tests / 24 files, builds, mobile typecheck); Metro export Android/iOS/web PASS. Native/device E2E остаётся OPS-001; отсутствие microphone capture/permission вызовов проверено по коду.
+- Финальный clean status блокируют исходные DOC-001 hunks LEAD; требуется их отдельная сдача владельцем. Статус FND-003 и Git-факты — ACTIVE_WORK и итоговый отчёт LEAD.

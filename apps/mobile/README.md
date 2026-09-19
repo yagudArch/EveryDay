@@ -72,6 +72,15 @@ npm test                               # vitest run из корня (включ�
 `src/storage/tokenStorage.test.ts`, `src/utils/asyncState.test.ts`, `src/utils/timezone.test.ts`,
 `src/utils/subscription.test.ts`, `src/features/auth/validation.test.ts`, `src/theme/tokens.test.ts`.
 
+`src/api/foundation.test.ts` проверяет mobile API-клиент через настоящий HTTP и временную
+файловую SQLite: регистрацию, профиль, preferences, контекст, logout и повторный login.
+Перед ним необходим `npm run build`; `npm run check` выполняет этот шаг автоматически.
+Это проверка API-интеграции, а не device E2E или проверка native SecureStore.
+
+Регрессии FND-003: timeout действует до завершения чтения тела ответа; 401 публичного
+endpoint или старого токена не сбрасывает новую сессию; успешные ответы предыдущей
+сессии отклоняются. Токен активируется только после успешной записи в хранилище.
+
 ## Идентификаторы и CNG
 
 - Отображаемое имя: **Каждый день**; slug `everyday`; scheme `everyday`.
