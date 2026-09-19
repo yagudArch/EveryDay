@@ -8,19 +8,19 @@
 
 | ID | Приоритет | Роль | Статус | Зависимости | Файлы | Результат и критерий готовности |
 |---|---|---|---|---|---|---|
-| DOC-001 | P0 | LEAD | REVIEW | Прямое поручение заказчика | MASTER_PROMPT.md, AGENTS.md, agent-roles/*.md, .ai/{ACTIVE_WORK,TASKS,PROJECT_STATE,CHANGELOG}.md | Согласованные обязательные Git/DoD-правила; только MD-изменения; проверки; commit `docs: enforce agent git workflow`; успешный push; чистый git status |
+| DOC-001 | P0 | LEAD | REVIEW | Прямое поручение заказчика | .ai/{ACTIVE_WORK,TASKS,PROJECT_STATE,CHANGELOG}.md | Правила опубликованы в ca21ac3; финальная синхронизация состояния и снятие блокировки Foundation. Только MD; DONE после commit/push и clean status, затем отдельная сдача подтверждённых статусов |
 
-Записи Foundation ниже сохранены из первичной инициализации; DOC-001 не запускает её заново, не меняет архитектуру и не переоценивает готовность feature/native-задач.
+Записи Foundation синхронизируются LEAD с опубликованными implementation commits и отчётами агентов. DOC-001 не повторяет инициализацию, не меняет код/архитектуру и не заменяет независимый Foundation gate или native-проверки.
 
 ## Foundation: исполняемый порядок
 
 | ID | Приоритет | Роль | Статус | Зависимости | Файлы | Результат и критерий готовности |
 |---|---|---|---|---|---|---|
 | FND-001 | P0 | LEAD | DONE | — | package.json, tsconfig*, packages/contracts/**, .ai/** | Стек сравнен, контракты опубликованы, области ролей закреплены до параллельной реализации |
-| FND-002 | P0 | BACKEND | BLOCKED | FND-001 | apps/backend/**, database/** | Аудит и исправления готовы к REVIEW; npm run check PASS (201 tests), compiled HTTP smoke PASS. Финальный clean status блокируют исходные DOC-001 hunks LEAD; подробности в ACTIVE_WORK. DONE подтверждает LEAD после Git-сдачи |
-| FND-003 | P0 | MOBILE | BLOCKED | FND-001 | apps/mobile/** | Mobile Foundation проверена: check PASS (208 tests), Metro Android/iOS/web PASS, реальный HTTP/SQLite integration. Git-сдача и clean status ожидаются; исходные DOC-001 hunks LEAD требуют отдельной сдачи. Подробности ACTIVE_WORK; DONE подтверждает LEAD |
-| FND-004 | P0 | AI ENGINEER | BLOCKED | FND-001 | packages/ai/** | Аудит готов к REVIEW: provider port/guards/contracts/unavailable, нет DB writes; исправлены timeout/cancellation/status/output validation. check PASS: 226 tests, builds/typecheck; независимый review PASS. Clean status блокируют исходные DOC-001 hunks LEAD; подробности ACTIVE_WORK. DONE подтверждает LEAD |
-| FND-005 | P0 | QA/DEVOPS + LEAD | BLOCKED | FND-002, FND-003, FND-004 | scripts/**, .github/**, lockfile, .ai/** | Preflight: commits зависимостей опубликованы в origin/main, но все три задачи BLOCKED; DOC-001 hunks LEAD не сданы, clean status отсутствует. Foundation gate не запускался. См. ACTIVE_WORK и FND-005-REPORT.md; требуется завершение зависимостей LEAD |
+| FND-002 | P0 | BACKEND | REVIEW | FND-001 | apps/backend/**, database/** | Implementation 92f642f опубликован в origin/main. Отчёт BACKEND: check PASS (201 tests), compiled HTTP smoke PASS, независимый review PASS. Финальное подтверждение LEAD после сдачи DOC-001 и clean status |
+| FND-003 | P0 | MOBILE | REVIEW | FND-001 | apps/mobile/** | Implementation 754d081 опубликован в origin/main. Отчёт MOBILE: check PASS (208 tests), Metro Android/iOS/web PASS, реальный HTTP/SQLite integration, независимый review PASS. Финальное подтверждение LEAD после сдачи DOC-001 и clean status |
+| FND-004 | P0 | AI ENGINEER | REVIEW | FND-001 | packages/ai/** | Implementation 251b4fd опубликован в origin/main. Отчёт AI: check PASS (226 tests), builds/typecheck, независимый review PASS; guards/contracts/unavailable, timeout/cancellation/output validation, без DB writes. Финальное подтверждение LEAD после сдачи DOC-001 и clean status |
+| FND-005 | P0 | QA/DEVOPS + LEAD | BLOCKED | FND-002, FND-003, FND-004 | scripts/**, .github/**, lockfile, .ai/** | Implementation commits зависимостей в origin/main, задачи REVIEW; ожидается финальная Git-сдача DOC-001 и подтверждение LEAD. Foundation gate не запускался; исторический preflight сохранён в FND-005-REPORT.md |
 | FND-006 | P0 | QA/DEVOPS | TODO | FND-005 | весь проект read-only | Независимый аудит, критичные дефекты устранены; отдельный вердикт о native readiness |
 
 ## Следующий цикл: завершение Foundation на устройствах

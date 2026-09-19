@@ -1,5 +1,17 @@
 # Активная работа
 
+## LEAD / ARCHITECT — DOC-001 REVIEW (финальная сдача)
+- Резервирование 2026-09-19: .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md, .ai/TASKS.md, append .ai/CHANGELOG.md. Единственный исполнитель Git-операций — LEAD. Код, contracts, архитектура и результаты агентов сохраняются.
+- Исходный Git: main → origin/main, HEAD 33610f11302e1b46a1f35acc9279af3738ca4d41; индекс пуст, изменены только три исходных файла DOC-001: ACTIVE_WORK, PROJECT_STATE, TASKS.
+- После git fetch origin и проверки live remote подтверждено: FND-002 92f642f, FND-003 754d081, FND-004 251b4fd — предки origin/main; отчёт QA опубликован в 33610f1. Identity соответствует существующей истории, не изменялась.
+- FND-002/FND-003/FND-004: REVIEW до сдачи этого документа и проверки чистого дерева; единственная прежняя блокировка — несданные изменения LEAD. Результаты проверок агентов сохранены ниже как история.
+- FND-005: ожидает финальной Git-проверки DOC-001; после неё LEAD подтвердит зависимости и откроет TODO для запуска QA/DEVOPS. Сам Foundation gate не выполнялся.
+- Проверки сдачи: npm run check PASS — сборки contracts/AI/backend, mobile typecheck, 226 tests / 24 files. Проверяются согласованность MD, отсутствие code/config diff и git diff --check. Native/device, live AI и production readiness этой задачей не подтверждаются; независимый QA gate не заменён.
+- План сдачи: commit `docs: complete DOC-001 and unblock foundation gate`, push origin main, проверка remote и clean status; затем отдельная отправка подтверждённых статусов по AGENTS.md §14.
+
+## История аудитов агентов до финальной сдачи DOC-001
+Следующие блоки сохранены без перезаписи результатов. BLOCKED, DONE и IN_PROGRESS внутри этой истории отражают момент соответствующей проверки; текущие назначения определяются блоком выше и TASKS.md. FND-005-REPORT.md — исторический preflight QA, не текущий запрет запуска после снятия блокировки LEAD.
+
 ## QA / DEVOPS — FND-005 BLOCKED (предварительная проверка зависимостей)
 - Поручение заказчика: Foundation gate только после завершения FND-002/FND-003/FND-004. Проверка выполнена 2026-09-19.
 - Резервирование: только собственный блок здесь, статус FND-005 в TASKS, append CHANGELOG и .ai/FND-005-REPORT.md. Код, contracts, CI, lockfile и архитектура не меняются.
@@ -45,17 +57,19 @@
 - Независимый code review: PASS, security_concerns/logic_errors пусты; рекомендации низкого приоритета по cleanup тестовых временных файлов и усилению assertions не блокируют review. SHA/push передаются LEAD итоговым сообщением. DONE не выставляется. Native/device и production readiness вне FND-002; node:sqlite остаётся experimental по принятой архитектуре.
 - Блокировка сдачи: `git status --short` показывает исходные изменения LEAD в .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md, .ai/TASKS.md. Ошибки Git-команд пока нет. Требуемое действие LEAD: сдать только свои DOC-001 hunks, согласовав последовательность Git-операций; затем проверить общий clean status. BACKEND сдаёт только собственные hunks FND-002.
 
-## LEAD / ARCHITECT — DOC-001 REVIEW
+## LEAD / ARCHITECT — DOC-001 DONE
 - Задача заказчика: исправить только MD-документацию и процесс Git/завершения задач; не повторять инициализацию и не менять архитектуру или features.
 - Резервирование: MASTER_PROMPT.md, AGENTS.md, agent-roles/*.md, .ai/ACTIVE_WORK.md, .ai/TASKS.md, .ai/PROJECT_STATE.md, .ai/CHANGELOG.md. .ai/ARCHITECTURE.md — только чтение.
 - Зависимости: нет; изменения документации выполняет LEAD последовательно, остальные роли не запускаются.
-- Исходный Git: main, HEAD ddc735b, origin/main; рабочее дерево и индекс чистые. Git identity задана; перед commit будет проверена повторно.
+- Исходный Git: main, HEAD ddc735b, origin/main; рабочее дерево и индекс были чистыми. Перед основным commit проверены user.name/user.email и фактические author/committer; identity согласована с существующей конфигурацией, не изменялась.
 - Найденный дефект: инструкции завершения не требовали обязательных commit, push и чистого git status; прежние .ai-записи сохранили промежуточные статусы инициализации.
 - Обязательные проверки DOC-001: согласованность MD-правил, git diff/--check, только согласованные MD-файлы, отсутствие изменений архитектуры/кода, проверка identity и индекса, успешные commit/push и чистый финальный status. Независимый аудит документации — PASS; git diff --check — PASS, diff содержит только согласованные MD-файлы.
 - Дополнительные проектные проверки: `npm run check` — FAIL на сборке backend; `npm test` — тесты backend падают по тайм-аутам, весь запуск остановлен по лимиту времени без итогового успешного результата; `npm run typecheck -w @everyday/mobile` — PASS. Сборки contracts и AI в составе check прошли.
 - Граница приёмки: DOC-001 — исправление документации, не приёмка приложения. Ошибки существующего неизменённого кода ниже переданы заказчику; они не исправляются и не выдаются за успешные проверки. Готовность Foundation/native/production этой задачей не подтверждается.
-- Commit/push: ещё не выполнены; задача не завершена.
-- Git-блокировки: не выявлены. При сбое Git задача остаётся BLOCKED, причина и требуемое действие передаются заказчику.
+- Основной commit: ca21ac355472642f5a96c0a6529b454160a695ba — `docs: enforce agent git workflow`; только согласованные MD-файлы, staged diff проверен.
+- Push: `git push origin main` выполнен успешно; `git ls-remote --heads origin main` подтвердил тот же SHA. После push: main up to date with origin/main; `nothing to commit, working tree clean`, porcelain с untracked-files=all пустой.
+- LEAD подтвердил DONE для основного результата по этим фактам. Эта запись о закрытии и статусы .ai сдаются отдельным `docs: record git workflow completion` с проверкой identity, diff, commit/push и повторным чистым git status до финального отчёта; её SHA определяется через Git, а не записывается внутрь самого commit.
+- Git-блокировки: не выявлены. При сбое отправки записи о закрытии вернуть BLOCKED, сохранить диагностику и сообщить заказчику. Резервирование файлов DOC-001 освобождается после успешной отправки этой записи и финального чистого статуса.
 
 ### Передано заказчику: ошибки проектных проверок вне DOC-001
 - Команда `npm run check`: backend TypeScript — TS2322 в `apps/backend/src/app.ts:129` (`AiGateway | Promise<AiGatewayLoad>` несовместим с `AiGateway`); TS2305 — отсутствуют экспорты `UpdateProfileInput`, `Goal`, `MemoryFact` из `@everyday/contracts` в account-service/dto.
