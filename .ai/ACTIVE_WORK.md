@@ -1,5 +1,16 @@
 # Активная работа
 
+## AI ENGINEER — FND-004 BLOCKED (код готов к REVIEW; ожидается сдача DOC-001)
+- Прямое поручение заказчика: аудит существующего AI Foundation; без AI-001, voice, memory и feature-specific AI.
+- Резервирование: packages/ai/**; собственный блок FND-004, статус задачи и append CHANGELOG. Contracts, backend и архитектура — только чтение.
+- Git: main → origin/main, исходный HEAD 754d081; индекс пуст. Исходные DOC-001 hunks LEAD в ACTIVE_WORK/PROJECT_STATE/TASKS сохраняются вне commit FND-004; чистый общий status зависит от сдачи LEAD.
+- Git-операции FND-004 выполняет AI ENGINEER последовательно с проверкой индекса; чужие изменения не включаются.
+- Проверки: provider port, capability/consent, structured preview/contracts, unavailable/errors, отсутствие DB writes; unit tests и общий check/build.
+- Исправлено: независимый от реакции провайдера timeout/cancellation, запрет вызова после pre-abort, проверка числовых лимитов, типизированные ошибки malformed/thrown status и result envelope, валидация исходного output до JSON-нормализации.
+- Проверено: npm run check PASS — builds contracts/AI/backend, mobile typecheck, 226 tests / 24 files (74 AI tests). Guards consent/capability, минимальный outbound context, mandatory confirmation и disabled/unavailable сохранены. DB imports/writes отсутствуют; contracts и архитектура не менялись.
+- Независимый review PASS: security_concerns/logic_errors пусты. Добавлен рекомендованный тест byte limit для schema-valid output; повторный check PASS. Live provider, native/device, voice и memory не реализовывались и не заявляются.
+- Блокировка: git status --short содержит исходные DOC-001 hunks LEAD в .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md, .ai/TASKS.md. Ошибок Git-команд нет; требуется отдельная сдача владельцем LEAD и повторный clean status. Собственные hunks FND-004 сдаются отдельно; SHA/push передаются LEAD итоговым сообщением. DONE не выставляется.
+
 ## MOBILE — FND-003 BLOCKED (реализация проверена; ожидается Git-сдача)
 - Прямое поручение заказчика: продолжить существующую Mobile Foundation, не менять стек и не начинать feature-задачи.
 - Резервирование: apps/mobile/**; собственный блок FND-003 в ACTIVE_WORK, статус FND-003 в TASKS и добавление в CHANGELOG. Backend/contracts/root config — только чтение.

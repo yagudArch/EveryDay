@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { AICapability, TodayContext } from '@everyday/contracts';
 import { AIService, AIServiceError } from './index.js';
 import type {
@@ -239,6 +239,10 @@ describe('AIService consent and capability gates', () => {
 // ---------------------------------------------------------------------------
 
 describe('AIService input validation', () => {
+  it.each([NaN, Infinity, 0, -1, 1.5, 2_147_483_648])('rejects unsafe timeout %s', (timeoutMs) => {
+    expect(() => new AIService(new FakeProvider(), { timeoutMs })).toThrow(AIServiceError);
+  });
+
   it.each([
     ['empty', ''],
     ['whitespace only', '   '],
@@ -371,6 +375,29 @@ describe('AIService.parse with a configured provider', () => {
 // ---------------------------------------------------------------------------
 
 describe('AIService strict provider output validation', () => {
+  it.each([
+    { actions: [mealAction({ occurredAt: NaN })] },
+    { actions: [], unexpected: undefined },
+    { actions: [], toJSON: () => ({ actions: [] }) },
+  ])('rejects values that JSON serialization would silently repair', async (output) => {
+    await expect(new AIService(new FakeProvider({ output })).parse(TEXT, contextFixture()))
+      .rejects.toMatchObject({ code: 'AI_INVALID_OUTPUT' });
+  });
+
+  it.each([null, undefined, { provider: 'broken', configured: true },
+    { provider: 'broken', configured: true, capabilities: 'structured_output' }])
+  ('normalizes malformed status into a typed error', (status) => {
+    const provider = new FakeProvider();
+    provider.status = () => status as unknown as AIProviderStatus;
+    expect(() => new AIService(provider).getStatus()).toThrow(AIServiceError);
+  });
+
+  it('normalizes a thrown status failure', () => {
+    const provider = new FakeProvider();
+    provider.status = () => { throw new Error('private upstream diagnostics'); };
+    expect(() => new AIService(provider).getStatus()).toThrow(AIServiceError);
+  });
+
   it.each<[string, unknown]>([
     ['a JSON array instead of an object', []],
     ['a plain string', '{"actions":[]}'],
@@ -429,6 +456,18 @@ describe('AIService strict provider output validation', () => {
     expect(error.code).toBe('AI_INVALID_OUTPUT');
   });
 
+  it('bounds bytes even when every action satisfies the schema', async () => {
+    const provider = new FakeProvider({ output: {
+      actions: Array.from({ length: 20 }, () => mealAction({
+        parameters: { description: 'я'.repeat(1_000), mealType: null },
+      })),
+      clarification: null,
+    } });
+    const error = await captureError(new AIService(provider).parse(TEXT, contextFixture()));
+    expect(error.code).toBe('AI_INVALID_OUTPUT');
+    expect(error.details).toEqual({ maxProviderOutputBytes: 32_768 });
+  });
+
   it('rejects a non-serializable provider output', async () => {
     const cyclic: Record<string, unknown> = { actions: [] };
     cyclic.self = cyclic;
@@ -443,6 +482,41 @@ describe('AIService strict provider output validation', () => {
 // ---------------------------------------------------------------------------
 
 describe('AIService failure handling', () => {
+  it('enforces timeout even when the provider ignores abort', async () => {
+    vi.useFakeTimers();
+    try {
+      const provider = new FakeProvider();
+      provider.structured = () => new Promise(() => {});
+      const result = new AIService(provider, { timeoutMs: 20 }).parse(TEXT, contextFixture());
+      const assertion = expect(result).rejects.toMatchObject({ code: 'AI_TIMEOUT', statusCode: 504 });
+      await vi.advanceTimersByTimeAsync(20);
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not call the provider for an already cancelled request', async () => {
+    const provider = new FakeProvider({ output: { actions: [], clarification: null } });
+    const controller = new AbortController();
+    controller.abort();
+    await expect(new AIService(provider).parse(TEXT, contextFixture(), { signal: controller.signal }))
+      .rejects.toMatchObject({ code: 'AI_ABORTED', statusCode: 499 });
+    expect(provider.structuredCalls).toBe(0);
+  });
+
+  it('cancels without waiting for the provider and ignores a late result', async () => {
+    const provider = new FakeProvider();
+    let resolve!: (result: StructuredResult) => void;
+    provider.structured = () => new Promise((done) => { resolve = done; });
+    const controller = new AbortController();
+    const result = new AIService(provider).parse(TEXT, contextFixture(), { signal: controller.signal });
+    controller.abort();
+    const assertion = expect(result).rejects.toMatchObject({ code: 'AI_ABORTED' });
+    resolve({ output: { actions: [], clarification: null } });
+    await assertion;
+  });
+
   it('aborts a hanging provider call with 504 AI_TIMEOUT', async () => {
     const provider = new FakeProvider({ hang: true });
     const service = new AIService(provider, { timeoutMs: 20 });

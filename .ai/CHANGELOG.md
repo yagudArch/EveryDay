@@ -20,3 +20,9 @@
 - Добавлены регрессии и mobile API integration через настоящий HTTP/SQLite: register/profile/preferences/context/logout/login.
 - Проверки: npm run check PASS (208 tests / 24 files, builds, mobile typecheck); Metro export Android/iOS/web PASS. Native/device E2E остаётся OPS-001; отсутствие microphone capture/permission вызовов проверено по коду.
 - Финальный clean status блокируют исходные DOC-001 hunks LEAD; требуется их отдельная сдача владельцем. Статус FND-003 и Git-факты — ACTIVE_WORK и итоговый отчёт LEAD.
+
+## 2026-09-19 — AI ENGINEER — FND-004
+- Проведён аудит существующего AI Foundation: provider port, capability/consent, structured output, validation/errors, unavailable, contracts и отсутствие DB writes.
+- Исправлены timeout/cancellation независимо от поведения провайдера, pre-abort, числовые лимиты, malformed/thrown status, result envelope и проверка исходного output до JSON-сериализации.
+- Добавлены регрессии; npm run check PASS: 226 tests / 24 files (74 AI tests), builds и mobile typecheck. Независимый review PASS; рекомендованный schema-valid byte-limit test добавлен и проверен.
+- AI-001, voice, memory и feature-specific AI не запускались. Git-сдача BLOCKED по clean status из-за исходных DOC-001 hunks LEAD; нужны их отдельная сдача владельцем и повторная проверка. DONE не выставлен.

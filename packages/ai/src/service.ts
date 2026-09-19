@@ -160,6 +160,15 @@ export class AIService {
     this.maxInputLength = options.maxInputLength ?? AI_SERVICE_LIMITS.maxInputLength;
     this.maxActions = options.maxActions ?? AI_SERVICE_LIMITS.maxActions;
     this.validateContext = options.validateContext ?? true;
+    for (const [field, value, maximum] of [
+      ['timeoutMs', this.timeoutMs, 2_147_483_647],
+      ['maxInputLength', this.maxInputLength, AI_SERVICE_LIMITS.maxInputLength],
+      ['maxActions', this.maxActions, AI_SERVICE_LIMITS.maxActions],
+    ] as const) {
+      if (!Number.isInteger(value) || value < 1 || value > maximum) {
+        throw new AIServiceError('AI_INVALID_INPUT', 'Invalid AI service limit', 400, { details: { field } });
+      }
+    }
   }
 
   /**
@@ -168,12 +177,13 @@ export class AIService {
    * provider is a valid, honest state (configured: false).
    */
   getStatus(): AIStatus {
-    const status = this.provider.status();
-    const parsed = AIStatusSchema.safeParse({
-      provider: status.provider,
-      configured: status.configured,
-      capabilities: [...status.capabilities],
-    });
+    let status: unknown;
+    try {
+      status = this.provider.status();
+    } catch (error) {
+      throw new AIServiceError('AI_PROVIDER_INVALID', 'AI provider status failed', 500, { providerCause: error });
+    }
+    const parsed = AIStatusSchema.safeParse(status);
     if (!parsed.success) {
       throw new AIServiceError('AI_PROVIDER_INVALID', 'AI provider reported an invalid status', 500, {
         details: issueDetails(parsed.error),
@@ -256,18 +266,27 @@ export class AIService {
   }
 
   private async callStructured(promptContext: PromptContext, callerSignal?: AbortSignal): Promise<unknown> {
+    if (callerSignal?.aborted) {
+      throw new AIServiceError('AI_ABORTED', 'AI provider request was aborted', 499);
+    }
     const controller = new AbortController();
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
+    let cancellation: AIServiceError | undefined;
+    let rejectCancellation!: (error: AIServiceError) => void;
+    const cancelled = new Promise<never>((_resolve, reject) => { rejectCancellation = reject; });
+    const cancel = (error: AIServiceError): void => {
+      if (cancellation) return;
+      cancellation = error;
+      rejectCancellation(error);
       controller.abort();
+    };
+    const timer = setTimeout(() => {
+      cancel(new AIServiceError('AI_TIMEOUT', 'AI provider request exceeded its timeout', 504));
     }, this.timeoutMs);
-    const onCallerAbort = (): void => controller.abort();
+    const onCallerAbort = (): void => cancel(new AIServiceError('AI_ABORTED', 'AI provider request was aborted', 499));
     callerSignal?.addEventListener('abort', onCallerAbort, { once: true });
-    if (callerSignal?.aborted === true) controller.abort();
 
     try {
-      const result = await this.provider.structured({
+      const pending = this.provider.structured({
         schemaName: 'ActionPreview',
         instruction: PARSER_INSTRUCTION,
         input: promptContext,
@@ -275,18 +294,15 @@ export class AIService {
         timeoutMs: this.timeoutMs,
         signal: controller.signal,
       });
+      const result = await Promise.race([pending, cancelled]);
+      if (cancellation) throw cancellation;
+      if (typeof result !== 'object' || result === null || !('output' in result)) {
+        throw invalidOutput('Provider result must contain output');
+      }
       return result.output;
     } catch (error) {
+      if (cancellation) throw cancellation;
       if (isAIServiceError(error)) throw error;
-      if (timedOut) {
-        throw new AIServiceError('AI_TIMEOUT', `AI provider request exceeded ${this.timeoutMs} ms`, 504, {
-          details: { timeoutMs: this.timeoutMs },
-          providerCause: error,
-        });
-      }
-      if (callerSignal?.aborted === true || controller.signal.aborted) {
-        throw new AIServiceError('AI_ABORTED', 'AI provider request was aborted', 499, { providerCause: error });
-      }
       throw new AIServiceError('AI_PROVIDER_FAILURE', 'AI provider request failed', 502, { providerCause: error });
     } finally {
       clearTimeout(timer);
@@ -299,13 +315,20 @@ export class AIService {
       throw invalidOutput('Provider output must be a JSON object');
     }
 
+    // Validate the original value: JSON.stringify would drop unknown undefined fields
+    // and convert NaN to null before the strict schema could reject them.
+    const draft = createDraftPreviewSchema(this.maxActions).safeParse(output);
+    if (!draft.success) {
+      throw invalidOutput('Provider output failed schema validation', issueDetails(draft.error));
+    }
+
     let serialized: string;
     try {
       const json = JSON.stringify(output);
       if (json === undefined) throw new Error('not serializable');
       serialized = json;
-    } catch (error) {
-      throw invalidOutput('Provider output is not serializable', { providerCause: String(error) });
+    } catch {
+      throw invalidOutput('Provider output is not serializable');
     }
 
     if (new TextEncoder().encode(serialized).length > AI_SERVICE_LIMITS.maxProviderOutputBytes) {
@@ -314,17 +337,6 @@ export class AIService {
       });
     }
 
-    let candidate: unknown;
-    try {
-      candidate = JSON.parse(serialized);
-    } catch {
-      throw invalidOutput('Provider output is not valid JSON');
-    }
-
-    const draft = createDraftPreviewSchema(this.maxActions).safeParse(candidate);
-    if (!draft.success) {
-      throw invalidOutput('Provider output failed schema validation', issueDetails(draft.error));
-    }
 
     // Platform-owned normalization: identity, timestamp default and mandatory confirmation.
     const candidateActions = draft.data.actions.map((action) => ({
