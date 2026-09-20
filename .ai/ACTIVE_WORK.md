@@ -1,5 +1,23 @@
 # Активная работа
 
+## LEAD / ARCHITECT — Цикл 1 (переход к продукту): запуск и координация
+- Foundation закрыт: FND-001…FND-006 DONE в origin/main, HEAD b5b29b5, дерево чистое, HEAD == origin/main (проверено fetch). Foundation-аудиты и полный regression в этом цикле НЕ повторяются.
+- Запущены параллельно без конфликта владения:
+  - **NUT-001 (BACKEND-A)** — первый продуктовый вертикальный срез (питание). Владение: database/migrations/0002_nutrition.sql, apps/backend/src/nutrition/**, apps/backend/src/routes/nutrition.ts, tests. Contracts УЖЕ опубликованы LEAD (см. ниже).
+  - **OPS-001 (QA/DEVOPS-A)** — native runner/APK/iOS/E2E. Владение: .github/**, apps/mobile native config. Не пересекается с NUT-001.
+- Готова, но НЕ запущена во избежание конфликта одной роли/файлов:
+  - **OPS-002** — одна роль QA/DEVOPS с OPS-001; брать после OPS-001 или вторым QA-агентом по согласованию LEAD. Разблокирует AI-001.
+  - **BCK-001** — одна роль BACKEND и общий database/migrations/** с активной NUT-001; брать ПОСЛЕ NUT-001 (миграция 0002 раньше, затем BCK-001) или последовательно по согласованию LEAD.
+- BLOCKED (зависимости не выполнены):
+  - **MOB-001** ← OPS-001 (native runner/E2E ещё не готовы).
+  - **AI-001** ← OPS-002 + server-side credentials оператора + privacy review. НЕ запускать преждевременно. Разблокирует NUT-003.
+  - **BCK-002** ← BCK-001.
+- LEAD-действие цикла (contracts — зона ответственности LEAD по ARCHITECTURE.md): опубликован nutrition-контракт в packages/contracts/src/index.ts — схемы NutritionGoal/UpdateNutritionGoal/Meal/CreateMeal/UpdateMeal/MealList/NutritionSummary, routes nutrition/goals|meals|summary + nutritionMealById, зарегистрированы в endpoints. Проверено: npm run build (contracts/AI/backend) PASS, openapi.test + apiBase.test PASS. Прикладной код модулей LEAD не писал.
+- Правила цикла для агентов: работать только над назначенной задачей; общий database/migrations/** и packages/contracts менять только по согласованию с LEAD; каждая задача завершается по AGENTS.md §9/§14 (commit+push+чистый статус); о новых проблемах — запись сюда и эскалация LEAD, без самостоятельного создания задач.
+- Следующее, что можно брать после текущих: NUT-002 (MOBILE) ← NUT-001+MOB-001; NUT-003 (AI) ← NUT-001+AI-001; NUT-004 (BACKEND) ← NUT-003.
+
+## История (Foundation закрыт) — блоки ниже архивные, не текущие назначения
+
 ## BACKEND — FND-005 portability repair REVIEW
 - Прямое поручение заказчика: исправить только зависимость migration path test от имени каталога checkout; FND-005 не закрывать, после push передать повторный Foundation Gate QA.
 - Резервирование: apps/backend/tests/migrations.test.ts, собственный блок ACTIVE_WORK, append CHANGELOG. Runtime paths.ts, SQL migrations, архитектура, TASKS и отчёт QA не меняются.

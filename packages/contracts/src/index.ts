@@ -7,8 +7,12 @@ export const routes = {
   me: `${API_PREFIX}/me`, preferences: `${API_PREFIX}/preferences`,
   today: `${API_PREFIX}/context/today`, subscription: `${API_PREFIX}/subscription`,
   aiStatus: `${API_PREFIX}/ai/status`, aiParse: `${API_PREFIX}/ai/parse`,
+  nutritionGoals: `${API_PREFIX}/nutrition/goals`,
+  nutritionMeals: `${API_PREFIX}/nutrition/meals`,
+  nutritionSummary: `${API_PREFIX}/nutrition/summary`,
   openapi: `${API_PREFIX}/openapi.json`,
 } as const;
+export const nutritionMealById = (id: string) => `${API_PREFIX}/nutrition/meals/${id}` as const;
 export const IsoDateTimeSchema = z.string().datetime({ offset: true });
 export const TimezoneSchema = z.string().min(1).max(100).refine((value) => {
   try { new Intl.DateTimeFormat('en', { timeZone: value }); return true; } catch { return false; }
@@ -99,6 +103,56 @@ export const ActionPreviewSchema = z.object({
 }).strict();
 export const HealthSchema = z.object({ status: z.literal('ok'), database: z.literal('ok') }).strict();
 
+// --- Nutrition (Stage 2, NUT-001). LEAD-owned contract; BACKEND implements routes/persistence.
+// Macros are non-negative, finite, and stored/returned rounded to 1 decimal place.
+const MacroGrams = z.number().finite().nonnegative().max(10000);
+const Calories = z.number().finite().nonnegative().max(50000);
+export const MealTypeSchema = z.enum(['breakfast', 'lunch', 'dinner', 'snack']);
+export const NutritionGoalSchema = z.object({
+  type: z.enum(['maintain', 'lose', 'gain', 'custom']),
+  calories: Calories.nullable(), protein: MacroGrams.nullable(),
+  fat: MacroGrams.nullable(), carbs: MacroGrams.nullable(),
+  updatedAt: IsoDateTimeSchema,
+}).strict();
+export const UpdateNutritionGoalSchema = z.object({
+  type: z.enum(['maintain', 'lose', 'gain', 'custom']),
+  calories: Calories.nullable(), protein: MacroGrams.nullable(),
+  fat: MacroGrams.nullable(), carbs: MacroGrams.nullable(),
+}).strict();
+export const MealSchema = z.object({
+  id: z.string().uuid(), mealType: MealTypeSchema,
+  description: z.string().trim().min(1).max(2000),
+  calories: Calories, protein: MacroGrams, fat: MacroGrams, carbs: MacroGrams,
+  // Server-computed local day (profile timezone) the meal counts toward.
+  localDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  consumedAt: IsoDateTimeSchema, createdAt: IsoDateTimeSchema,
+}).strict();
+export const CreateMealSchema = z.object({
+  mealType: MealTypeSchema, description: z.string().trim().min(1).max(2000),
+  calories: Calories, protein: MacroGrams, fat: MacroGrams, carbs: MacroGrams,
+  // Optional client instant; server resolves the local day and defaults to now when null.
+  consumedAt: IsoDateTimeSchema.nullable(),
+}).strict();
+export const UpdateMealSchema = CreateMealSchema.partial().strict().refine(
+  (value) => Object.keys(value).length > 0, 'At least one field required',
+);
+export const MealListSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), timezone: TimezoneSchema,
+  meals: z.array(MealSchema).max(200),
+}).strict();
+export const NutritionSummarySchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), timezone: TimezoneSchema,
+  goal: NutritionGoalSchema.nullable(),
+  consumed: z.object({
+    calories: Calories, protein: MacroGrams, fat: MacroGrams, carbs: MacroGrams,
+  }).strict(),
+  remaining: z.object({
+    calories: z.number().finite(), protein: z.number().finite(),
+    fat: z.number().finite(), carbs: z.number().finite(),
+  }).strict().nullable(),
+  mealCount: z.number().int().nonnegative(),
+}).strict();
+
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type Profile = z.infer<typeof ProfileSchema>;
@@ -111,6 +165,14 @@ export type AIStatus = z.infer<typeof AIStatusSchema>;
 export type AICapability = z.infer<typeof AICapabilitySchema>;
 export type StructuredAction = z.infer<typeof StructuredActionSchema>;
 export type ActionPreview = z.infer<typeof ActionPreviewSchema>;
+export type MealType = z.infer<typeof MealTypeSchema>;
+export type NutritionGoal = z.infer<typeof NutritionGoalSchema>;
+export type UpdateNutritionGoalInput = z.infer<typeof UpdateNutritionGoalSchema>;
+export type Meal = z.infer<typeof MealSchema>;
+export type CreateMealInput = z.infer<typeof CreateMealSchema>;
+export type UpdateMealInput = z.infer<typeof UpdateMealSchema>;
+export type MealList = z.infer<typeof MealListSchema>;
+export type NutritionSummary = z.infer<typeof NutritionSummarySchema>;
 
 // Shared endpoint catalog: used for OpenAPI generation and contract tests.
 export const endpoints = [
@@ -127,4 +189,9 @@ export const endpoints = [
   { method: 'get', path: routes.subscription, auth: true, response: SubscriptionSchema, status: 200 },
   { method: 'get', path: routes.aiStatus, auth: true, response: AIStatusSchema, status: 200 },
   { method: 'post', path: routes.aiParse, auth: true, body: ParseInputSchema, response: ActionPreviewSchema, status: 200 },
+  { method: 'get', path: routes.nutritionGoals, auth: true, response: NutritionGoalSchema.nullable(), status: 200 },
+  { method: 'put', path: routes.nutritionGoals, auth: true, body: UpdateNutritionGoalSchema, response: NutritionGoalSchema, status: 200 },
+  { method: 'get', path: routes.nutritionMeals, auth: true, response: MealListSchema, status: 200 },
+  { method: 'post', path: routes.nutritionMeals, auth: true, body: CreateMealSchema, response: MealSchema, status: 201 },
+  { method: 'get', path: routes.nutritionSummary, auth: true, response: NutritionSummarySchema, status: 200 },
 ] as const;

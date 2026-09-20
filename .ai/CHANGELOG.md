@@ -80,3 +80,10 @@
 - Не-блокирующее передано владельцам: npm audit 12 moderate (LEAD/OPS-002), P2 MOBILE race/timezone (MOB-001), backend hardening (BCK-001), косметика HomeScreen wardrobe wording (MOBILE).
 - Native readiness — отдельный вердикт: НЕ готов (APK/IPA, device SecureStore/cold-launch, live AI), это не блокер Foundation по ARCHITECTURE; вынесено в OPS-001/OPS-002/AI-001.
 - Реальных оставшихся блокеров Foundation нет. FND-006 DONE, Foundation закрыт. Проект передаётся LEAD для продуктового цикла (этап 2 — питание). Следующие задачи QA не начинает. Отчёт FND-006-REPORT.md.
+
+## 2026-09-20 — LEAD / ARCHITECT — Цикл 1: переход к продукту и nutrition-контракт
+- Foundation закрыт (FND-001…006 DONE, origin/main b5b29b5). Начат первый продуктовый цикл; Foundation-аудиты и полный regression не повторяются.
+- Опубликован nutrition-контракт в packages/contracts/src/index.ts: NutritionGoal/UpdateNutritionGoal/Meal/CreateMeal/UpdateMeal/MealList/NutritionSummary, routes nutrition/goals|meals|summary + nutritionMealById, регистрация в endpoints. Макросы finite/non-negative, округление до 0.1, локальный день по timezone профиля. Contracts — зона LEAD по ARCHITECTURE.md; прикладной код модулей LEAD не писал.
+- Проверено LEAD: npm run build (contracts/AI/backend) PASS; openapi.test 4/4 и apiBase.test 19/19 PASS. Полный regression намеренно не переигрывался.
+- Запущены параллельно без конфликта владения: NUT-001 (BACKEND — питание: миграция 0002, сервис+роуты, integration tests) и OPS-001 (QA/DEVOPS — native runner/APK/iOS/E2E). Готовы, но отложены во избежание конфликта одной роли/файлов: OPS-002 (после OPS-001), BCK-001 (после NUT-001, общий database/migrations/**). BLOCKED: MOB-001 (←OPS-001), AI-001 (←OPS-002 + credentials/privacy), BCK-002 (←BCK-001).
+- Синхронизированы .ai/TASKS.md, .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md: статусы, владельцы, выполненные зависимости и «что брать следующим».
