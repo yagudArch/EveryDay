@@ -1,6 +1,30 @@
 # FND-005 — отчёт QA / DEVOPS для LEAD
 
-## Актуальный повторный Foundation gate — 2026-09-19 — BLOCKED
+## Финальный Foundation gate — 2026-09-20 — PASS
+
+Проверяемый код: `429750295505ac578e147b29300fea8d8ae3438c` (`fix(backend): make migration path test portable`), main → origin/main, дерево/индекс чистые; local HEAD == origin/main. Portability-blocker прошлого gate (basename-зависимость migrations.test.ts) устранён BACKEND: тест теперь сверяет projectRoot с путём из import.meta.url и наличие 0001_foundation.sql, а не имя каталога.
+
+Проверки в новой чистой копии с ДРУГИМ именем: `git clone --no-hardlinks C:/Users/Admin2/Desktop/EveryDay C:/Users/Admin2/AppData/Local/Temp/everyday-fnd005-gate-4297502` (нет node_modules/build artifacts), обычный `npm ci`.
+
+| Gate / команда | Результат |
+|---|---|
+| `npm ci` в переименованной чистой копии | PASS, 610 packages |
+| `npm run check` в переименованной копии | PASS, exit 0: 226 tests / 24 files, builds contracts/AI/backend + mobile typecheck |
+| Portability-фикс | PASS: прежний FAIL migrations.test.ts больше не воспроизводится вне каталога EveryDay; все 8 migration tests проходят |
+| Backend ↔ Mobile ↔ AI / HTTP smoke | PASS: `node --import tsx --test scripts/foundation-smoke.mjs`, 2/2 |
+| Migration CLI | PASS: `npm run db:migrate` applied 0001; повтор `-w @everyday/backend` skipped 0001 |
+| Expo compatibility | PASS: `expo install --check` — Dependencies are up to date |
+| Mobile export | PASS: `CI=1 npm run build:mobile` — Android/iOS Hermes bundles и web JS |
+| Remote CI на 4297502 | PASS: run 35466855284, foundation (ubuntu-latest) и foundation (windows-latest) — success, ни одного упавшего шага |
+| Git consistency | main → origin/main == 4297502, дерево чистое; implementation ancestry сохранена |
+
+Auth/session, persistence/isolation, subscription/trial, contracts/OpenAPI и AI consent/preview-only регрессии входят в тот же зелёный `npm run check` (226/226), отдельно перепроверялись в прошлом gate и не менялись после portability-фикса. Backend изменил только тест путей; runtime paths.ts, SQL и архитектура нетронуты.
+
+Открытые не-блокирующие пункты (переданы владельцам, не входят в критерии FND-005): `npm audit` 12 moderate (Vitest mocker и uuid через Expo tooling) — решение LEAD по dependency/security; P2 MOBILE risks (GET/PATCH race, timezone invalidation) в MOB-001. Native APK/IPA, device SecureStore/cold-launch и live AI provider вне Foundation — отдельные native/production gates.
+
+Вывод: все обязательные Foundation Gate пройдены на текущем origin/main. FND-005 закрыта.
+
+## Исторический повторный Foundation gate — 2026-09-19 — BLOCKED
 
 Проверяемый код: `cd55dcdf5375b0839c9ce2008380da6341ad21bb`, main → origin/main. Live remote SHA и ancestry FND-002/FND-003/FND-004 проверены самостоятельно. Заказчик передал FND-005/Git-сдачу этому чату и подтвердил остановку другого QA; исходная запись FND-006 в ACTIVE_WORK заменена согласованной передачей. FND-006 не выполнялась.
 

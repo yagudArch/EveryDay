@@ -67,3 +67,9 @@
 - Устранена зависимость migration path test от имени папки EveryDay: проверяется точный корень относительно файла теста, сохранена проверка defaultMigrationsDir, добавлено наличие migration SQL. Production code, SQL и архитектура не менялись.
 - Регрессия воспроизведена до исправления в независимой копии migration-portability-regression после обычного npm ci. После исправления npm run check PASS в исходном и переименованном каталогах: по 226 tests / 24 files, все builds/typecheck.
 - Исправление передаётся на REVIEW; FND-005 не закрыта. QA должен повторить Foundation Gate после push.
+
+## 2026-09-20 — QA / DEVOPS — FND-005 финальный Foundation gate DONE
+- Повторный независимый gate на origin/main 4297502 после portability-фикса BACKEND. Проверки в чистой копии с ДРУГИМ именем каталога: обычный npm ci (610 packages), npm run check 226/226 PASS, builds contracts/AI/backend, mobile typecheck.
+- PASS: smoke HTTP/Mobile/Backend/AI/SQLite 2/2, migration CLI apply/skip, Expo compatibility check, Metro Android/iOS/web export. Прежний basename-blocker migrations.test.ts не воспроизводится.
+- Remote CI run 35466855284 подтверждён через GitHub API: foundation ubuntu-latest и windows-latest — success, упавших шагов нет.
+- Все обязательные Foundation Gate пройдены. FND-005 закрыта в DONE. Не-блокирующие пункты переданы владельцам: npm audit 12 moderate (LEAD), P2 MOBILE risks (MOB-001), native/live AI (отдельные gates). FND-006 и feature-задачи не запускались.

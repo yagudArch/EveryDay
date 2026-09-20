@@ -10,8 +10,15 @@
 - npm run check PASS в C:/Users/Admin2/Desktop/EveryDay и C:/Users/Admin2/AppData/Local/Temp/migration-portability-regression: в каждом 226 tests / 24 files, builds contracts/AI/backend и mobile typecheck. Исправленный файл одинаков в обеих копиях (git diff применён без дополнительных изменений).
 - Передача LEAD/QA: после опубликованного исправления повторить Foundation Gate. FND-005 остаётся BLOCKED до решения QA/LEAD; этот REVIEW относится только к portability repair. Фактические commit SHA/push/clean status передаются итоговым сообщением после Git-сдачи.
 
-## QA / DEVOPS — FND-005 BLOCKED; повторный Foundation gate
-- Заказчик подтвердил передачу FND-005 и Git-сдачи этому чату; другой QA остановлен. Его исходная незакоммиченная запись о FND-006 заменена этой согласованной передачей. FND-006 и feature-задачи здесь не выполняются.
+## QA / DEVOPS — FND-005 DONE; финальный Foundation gate
+- Повторный gate после portability-фикса BACKEND на origin/main 4297502 (local HEAD == origin/main, дерево чистое). FND-006 и feature-задачи не запускались.
+- Проверки в новой чистой копии с ДРУГИМ именем C:/Users/Admin2/AppData/Local/Temp/everyday-fnd005-gate-4297502 (без node_modules/build): обычный npm ci (610 packages), npm run check 226/226 PASS, builds contracts/AI/backend, mobile typecheck. Прежний basename-blocker migrations.test.ts снят и не воспроизводится.
+- PASS: smoke HTTP/Mobile/Backend/AI/SQLite 2/2, migration CLI applied 0001 / повтор skipped 0001, Expo install --check up to date, CI=1 build:mobile Android/iOS/web. Remote CI run 35466855284 (ubuntu-latest, windows-latest) success через GitHub API, упавших шагов нет.
+- Все обязательные Foundation Gate пройдены. Не-блокирующие пункты переданы владельцам: npm audit 12 moderate (LEAD dependency/security), P2 MOBILE GET/PATCH race и timezone invalidation (MOB-001), native APK/IPA + device SecureStore/cold-launch + live AI (отдельные native/production gates).
+- Git-сдача: адресный add .ai/{ACTIVE_WORK,TASKS,CHANGELOG,FND-005-REPORT}.md, commit/push origin/main, проверка чистого статуса. Отчёт FND-005-REPORT.md. Итоговый SHA/push/status — в финальном сообщении.
+
+## История: QA / DEVOPS — FND-005 BLOCKED; повторный Foundation gate cd55dcd
+- Заказчик подтвердил передачу FND-005 и Git-сдачи этому чату; другой QA остановлен. Его исходная незакоммиченная запись о FND-006 заменена этой согласованной передачей. FND-006 и feature-задачи здесь не выполнялись.
 - Область сдачи: .ai/FND-005-REPORT.md, собственный блок ACTIVE_WORK, строка FND-005 TASKS, append CHANGELOG. Код/архитектура не изменены. PROJECT_STATE остаётся LEAD: актуальный результат для синхронизации — этот блок и отчёт.
 - Проверен cd55dcdf5375b0839c9ce2008380da6341ad21bb, main → origin/main; live remote совпал, ancestry реализаций подтверждено, индекс исходно пуст. Единственный исполнитель Git-сдачи — текущий QA.
 - Чистая независимая копия C:/Users/Admin2/AppData/Local/Temp/everyday-fnd005-gate-current: npm ci PASS (610 packages), build contracts/AI/backend PASS, mobile typecheck PASS, Expo check PASS, Metro Android/iOS/web PASS; smoke HTTP/Mobile/compiled Backend/AI/SQLite 2/2 PASS; migration CLI applied 0001, повтор skipped 0001.
