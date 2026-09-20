@@ -94,6 +94,13 @@
 - Запущены параллельно без конфликта владения: NUT-001 (BACKEND — питание: миграция 0002, сервис+роуты, integration tests) и OPS-001 (QA/DEVOPS — native runner/APK/iOS/E2E). Готовы, но отложены во избежание конфликта одной роли/файлов: OPS-002 (после OPS-001), BCK-001 (после NUT-001, общий database/migrations/**). BLOCKED: MOB-001 (←OPS-001), AI-001 (←OPS-002 + credentials/privacy), BCK-002 (←BCK-001).
 - Синхронизированы .ai/TASKS.md, .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md: статусы, владельцы, выполненные зависимости и «что брать следующим».
 
+## 2026-09-20 — LEAD / ARCHITECT — Цикл 1: NUT-001 DONE, разблокировка BCK-001
+- NUT-001 (BACKEND) переведена в DONE. Implementation 8467216 в origin/main (nutrition goals/meals/daily summary, миграция 0002). Подтверждено: npm run check 233/233 PASS, builds contracts/AI/backend + mobile typecheck PASS, working tree clean, HEAD==origin/main 9d9e1e0. Foundation-аудиты не повторялись.
+- BCK-001 (BACKEND) РАЗБЛОКИРОВАНА: зависимость NUT-001 выполнена, миграция 0002 опубликована → следующая 0003; конфликт владения database/migrations/** снят. Статус TODO (ready), готова к запуску.
+- OPS-001 (QA/DEVOPS) остаётся BLOCKED: локальный хост без native toolchain (нет Android SDK/adb/gradle, JDK 25 вместо 17, нет macOS/Xcode). Определён путь решения через GitHub Actions native runners: workflow native-build.yml (android=ubuntu-latest JDK17+setup-android+expo prebuild+Gradle assembleDebug+APK artifact; ios=macos-latest Xcode+expo prebuild+xcodebuild simulator; cold-launch/SecureStore E2E на android-emulator-runner или устройстве). DONE только после зелёного native-прогона с artifacts; Metro export ≠ APK/IPA по ARCHITECTURE.
+- MOB-001, AI-001, NUT-002 НЕ запускаются: зависимости не выполнены (MOB-001←OPS-001; AI-001←OPS-002+credentials/privacy; NUT-002←NUT-001✓+MOB-001).
+- Синхронизированы .ai/TASKS.md, .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md.
+
 ## 2026-09-20 — BACKEND — NUT-001 nutrition vertical slice REVIEW
 - Добавлена миграция 0002_nutrition.sql: таблицы meals и nutrition_goals, обе с user_id FK ON DELETE CASCADE, конвенции 0001 (TEXT uuid, ISO TEXT timestamps, REAL макросы с non-negative CHECK, WAL/PRAGMA через runner, checksum-версионирование). Ничего не сидируется.
 - Реализован сервис+роуты питания по опубликованному LEAD контракту: GET/PUT /api/v1/nutrition/goals, GET/POST /api/v1/nutrition/meals, GET /api/v1/nutrition/summary. Использованы routes.* и экспортированные Zod-схемы contracts без редекларации; packages/contracts не менялся.

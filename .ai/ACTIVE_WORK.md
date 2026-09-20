@@ -1,20 +1,20 @@
 # Активная работа
 
-## LEAD / ARCHITECT — Цикл 1 (переход к продукту): запуск и координация
-- Foundation закрыт: FND-001…FND-006 DONE в origin/main, HEAD b5b29b5, дерево чистое, HEAD == origin/main (проверено fetch). Foundation-аудиты и полный regression в этом цикле НЕ повторяются.
-- Запущены параллельно без конфликта владения:
-  - **NUT-001 (BACKEND-A)** — первый продуктовый вертикальный срез (питание). Владение: database/migrations/0002_nutrition.sql, apps/backend/src/nutrition/**, apps/backend/src/routes/nutrition.ts, tests. Contracts УЖЕ опубликованы LEAD (см. ниже).
-  - **OPS-001 (QA/DEVOPS-A)** — native runner/APK/iOS/E2E. Владение: .github/**, apps/mobile native config. Не пересекается с NUT-001.
-- Готова, но НЕ запущена во избежание конфликта одной роли/файлов:
-  - **OPS-002** — одна роль QA/DEVOPS с OPS-001; брать после OPS-001 или вторым QA-агентом по согласованию LEAD. Разблокирует AI-001.
-  - **BCK-001** — одна роль BACKEND и общий database/migrations/** с активной NUT-001; брать ПОСЛЕ NUT-001 (миграция 0002 раньше, затем BCK-001) или последовательно по согласованию LEAD.
-- BLOCKED (зависимости не выполнены):
-  - **MOB-001** ← OPS-001 (native runner/E2E ещё не готовы).
-  - **AI-001** ← OPS-002 + server-side credentials оператора + privacy review. НЕ запускать преждевременно. Разблокирует NUT-003.
-  - **BCK-002** ← BCK-001.
-- LEAD-действие цикла (contracts — зона ответственности LEAD по ARCHITECTURE.md): опубликован nutrition-контракт в packages/contracts/src/index.ts — схемы NutritionGoal/UpdateNutritionGoal/Meal/CreateMeal/UpdateMeal/MealList/NutritionSummary, routes nutrition/goals|meals|summary + nutritionMealById, зарегистрированы в endpoints. Проверено: npm run build (contracts/AI/backend) PASS, openapi.test + apiBase.test PASS. Прикладной код модулей LEAD не писал.
-- Правила цикла для агентов: работать только над назначенной задачей; общий database/migrations/** и packages/contracts менять только по согласованию с LEAD; каждая задача завершается по AGENTS.md §9/§14 (commit+push+чистый статус); о новых проблемах — запись сюда и эскалация LEAD, без самостоятельного создания задач.
-- Следующее, что можно брать после текущих: NUT-002 (MOBILE) ← NUT-001+MOB-001; NUT-003 (AI) ← NUT-001+AI-001; NUT-004 (BACKEND) ← NUT-003.
+## LEAD / ARCHITECT — Цикл 1: NUT-001 DONE, синхронизация зависимостей
+- Состояние Git: HEAD == origin/main == 9d9e1e0, дерево чистое (проверено fetch). Foundation закрыт (FND-001…006 DONE); Foundation-аудиты и полный regression НЕ повторяются.
+- **NUT-001 (BACKEND) — DONE.** Implementation 8467216 в origin/main (nutrition goals/meals/daily summary, миграция 0002). Проверено: npm run check 233/233 PASS, builds contracts/AI/backend + mobile typecheck PASS, working tree clean. LEAD подтвердил DONE.
+- **BCK-001 (BACKEND) — РАЗБЛОКИРОВАНА (TODO ready).** Зависимость NUT-001 выполнена; миграция 0002 опубликована → следующая 0003. Роль BACKEND свободна, конфликт по database/migrations/** снят. Готова к запуску.
+- **OPS-001 (QA/DEVOPS) — остаётся BLOCKED.** Локальный хост без native toolchain (Windows/MINGW64, нет Android SDK/adb/gradle, JDK 25 вместо 17, нет macOS/Xcode) — см. .ai/OPS-001-REPORT.md. Решение LEAD: путь через GitHub Actions native runners (workflow native-build.yml: android=ubuntu-latest JDK17+setup-android+expo prebuild+Gradle assembleDebug+APK artifact; ios=macos-latest Xcode+expo prebuild+xcodebuild simulator; cold-launch/SecureStore E2E на эмуляторе-runner или устройстве). QA готовит workflow; DONE только после зелёного native-прогона с artifacts. Metro export ≠ APK/IPA (ARCHITECTURE).
+- НЕ запускать (зависимости не выполнены):
+  - **NUT-002 (MOBILE)** ← NUT-001 ✓ + MOB-001 (ждёт OPS-001). Не стартовать до разблокировки MOB-001.
+  - **MOB-001 (MOBILE)** ← OPS-001 (BLOCKED, native runner/E2E не готовы).
+  - **AI-001 (AI ENGINEER)** ← OPS-002 + server-side credentials + privacy review. НЕ запускать преждевременно. Разблокирует NUT-003.
+  - **NUT-003 (AI)** ← NUT-001 ✓ + AI-001 (BLOCKED).
+  - **BCK-002 (BACKEND)** ← BCK-001.
+- Готова, но одна роль с OPS-001: **OPS-002** — брать после OPS-001 либо вторым QA/DEVOPS-агентом по согласованию LEAD; разблокирует AI-001.
+- Правила цикла для агентов: работать только над назначенной задачей; общий database/migrations/** и packages/contracts менять только по согласованию с LEAD; каждая задача завершается по AGENTS.md §9/§14 (commit+push+чистый статус); о новых проблемах — запись сюда и эскалация LEAD.
+- Гигиена репозитория: в корне обнаружен ошибочный файл `tatus --short` (артефакт shell-редиректа). Удаление — отдельным согласованным действием владельца корня (LEAD); в этот коммит не включается.
+- Следующее к запуску: **BCK-001 (BACKEND)** — готова прямо сейчас. Native-путь OPS-001 — подготовка workflow QA. Остальное ждёт зависимостей.
 
 ## История (Foundation закрыт) — блоки ниже архивные, не текущие назначения
 
