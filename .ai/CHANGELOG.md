@@ -81,6 +81,12 @@
 - Native readiness — отдельный вердикт: НЕ готов (APK/IPA, device SecureStore/cold-launch, live AI), это не блокер Foundation по ARCHITECTURE; вынесено в OPS-001/OPS-002/AI-001.
 - Реальных оставшихся блокеров Foundation нет. FND-006 DONE, Foundation закрыт. Проект передаётся LEAD для продуктового цикла (этап 2 — питание). Следующие задачи QA не начинает. Отчёт FND-006-REPORT.md.
 
+## 2026-09-20 — QA / DEVOPS — OPS-001 BLOCKED (нет native toolchain)
+- Проверено окружение хоста: Windows/MINGW64 (не macOS), Temurin JDK 25 (Android Gradle требует 17), ANDROID_HOME/ANDROID_SDK_ROOT пусты, adb/sdkmanager/gradle отсутствуют, eas.json и native android/ios dirs отсутствуют.
+- Обязательные критерии OPS-001 (Android debug APK, iOS simulator build, device cold-launch без микрофона, login/logout device-persistence E2E) не выполнимы в этой среде и не фабрикуются; iOS на Windows принципиально невозможен. По AGENTS.md §9/§14 недоступность обязательной проверки = блокировка.
+- Косвенное Node-покрытие (mobile API integration, foundation-smoke) уже зелёное в FND-005/006, но device SecureStore/cold-launch не заменяет. Статически микрофон не активируется (FND-006).
+- OPS-001 BLOCKED; MOB-001 остаётся BLOCKED; OPS-002 не начата (одна роль). Требуется CI-runner (ubuntu Android SDK+JDK17, macos Xcode) или окружение с SDK/устройством — адресат LEAD/заказчик. Отчёт .ai/OPS-001-REPORT.md. Отмечен мусорный файл в корне `tatus --short` (владелец LEAD).
+
 ## 2026-09-20 — LEAD / ARCHITECT — Цикл 1: переход к продукту и nutrition-контракт
 - Foundation закрыт (FND-001…006 DONE, origin/main b5b29b5). Начат первый продуктовый цикл; Foundation-аудиты и полный regression не повторяются.
 - Опубликован nutrition-контракт в packages/contracts/src/index.ts: NutritionGoal/UpdateNutritionGoal/Meal/CreateMeal/UpdateMeal/MealList/NutritionSummary, routes nutrition/goals|meals|summary + nutritionMealById, регистрация в endpoints. Макросы finite/non-negative, округление до 0.1, локальный день по timezone профиля. Contracts — зона LEAD по ARCHITECTURE.md; прикладной код модулей LEAD не писал.

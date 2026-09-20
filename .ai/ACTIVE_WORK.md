@@ -28,6 +28,15 @@
 - npm run check PASS в C:/Users/Admin2/Desktop/EveryDay и C:/Users/Admin2/AppData/Local/Temp/migration-portability-regression: в каждом 226 tests / 24 files, builds contracts/AI/backend и mobile typecheck. Исправленный файл одинаков в обеих копиях (git diff применён без дополнительных изменений).
 - Передача LEAD/QA: после опубликованного исправления повторить Foundation Gate. FND-005 остаётся BLOCKED до решения QA/LEAD; этот REVIEW относится только к portability repair. Фактические commit SHA/push/clean status передаются итоговым сообщением после Git-сдачи.
 
+## QA / DEVOPS — OPS-001 BLOCKED (нет native toolchain)
+- Область: .github/**, apps/mobile native config, собственный блок ACTIVE_WORK, строка OPS-001 TASKS, append CHANGELOG, .ai/OPS-001-REPORT.md. OPS-002 не берётся (одна роль). Прикладной код не менялся.
+- Проверка окружения (собственные запуски): Windows MINGW64_NT (не macOS); Temurin JDK 25 (Android Gradle требует JDK 17); ANDROID_HOME/ANDROID_SDK_ROOT пусты; adb/sdkmanager/gradle отсутствуют в PATH; eas.json и native android/ios dirs отсутствуют (managed Expo, .gitignore).
+- Следствие: Android debug APK, iOS simulator build, device cold-launch (микрофон не активируется) и login/logout device-persistence E2E НЕ выполнимы в этой среде; iOS на Windows принципиально невозможен. Фабриковать результаты запрещено — по AGENTS.md §9/§14 недоступность обязательной проверки = блокировка.
+- Косвенное (не заменяет device): mobile API integration и foundation-smoke на Node-уровне (register/login/logout/persist/restart через HTTP+файловую SQLite) — уже зелёные в FND-005/006; статически нет microphone capture/permission в mobile, кнопка «Сказать» disabled (FND-006).
+- Требуемое действие LEAD/заказчик: предоставить CI-runner (ubuntu-latest Android SDK + JDK 17 для expo prebuild + Gradle assembleDebug; macos-latest Xcode для iOS simulator) с правами на Actions, либо окружение с Android SDK/устройством. До этого OPS-001 BLOCKED, MOB-001 остаётся BLOCKED.
+- Гигиена репо: в корне обнаружен ошибочный файл `tatus --short` (артефакт shell-редиректа, в дереве с сен 17, untracked/или трекнут). Владелец корня LEAD; QA не удаляет без согласования.
+- Git-сдача этой записи: адресный add .ai/{OPS-001-REPORT,TASKS,ACTIVE_WORK,CHANGELOG}.md, commit/push origin/main, чистый статус; SHA — в финальном сообщении.
+
 ## QA / DEVOPS — FND-006 DONE; Foundation закрыт
 - Независимый аудит origin/main 6c8fd84 (прикладной код Foundation неизменён с 4297502). Область: чтение исходников BACKEND/MOBILE/AI + contracts; повторный полный FND-005 не переигрывался.
 - Не найдено: критичных дефектов, архитектурных нарушений, проблем безопасности, разрывов интеграции Backend/Mobile/AI, fake production data. SQL bound-параметрами; scrypt+соль+timingSafeEqual; opaque sessions SHA-256; identity только из principal; contract-schemas на обеих сторонах; AI disabled→503 и preview-only без DB writes; consent/микрофон по правилам; loopback+CORS allowlist+helmet+rate limit+bodyLimit.
