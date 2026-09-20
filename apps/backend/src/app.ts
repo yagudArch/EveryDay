@@ -14,6 +14,7 @@ import { registerAccountRoutes } from './routes/account.js';
 import { registerAiRoutes } from './routes/ai.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerHealthRoutes } from './routes/health.js';
+import { registerNutritionRoutes } from './routes/nutrition.js';
 import { createAiGateway, type AiGateway } from './services/ai-service.js';
 
 /**
@@ -138,6 +139,7 @@ export async function createApp(options: CreateAppOptions): Promise<FastifyInsta
   registerAuthRoutes(app, context);
   registerAccountRoutes(app, context);
   registerAiRoutes(app, context);
+  registerNutritionRoutes(app, context);
   registerOpenApiRoute(app);
 
   app.addHook('onClose', async () => {

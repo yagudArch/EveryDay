@@ -179,3 +179,13 @@
 - Flutter/Dart, Android SDK/adb, Gradle, Docker, psql не найдены в PATH. Java доступна.
 - Нативную iOS сборку на Windows не заявлять. AI ключей в репозитории нет.
 - npm metadata периодически ECONNRESET; используем подтверждённые версии и lockfile, без отключения TLS.
+
+## BACKEND-A — NUT-001 REVIEW (nutrition vertical slice)
+- Реализован backend-срез питания по опубликованному LEAD контракту (packages/contracts не менялся).
+- Владение соблюдено: database/migrations/0002_nutrition.sql (таблицы meals + nutrition_goals, FK ON DELETE CASCADE, конвенции 0001), apps/backend/src/nutrition/{repository,service}.ts, apps/backend/src/routes/nutrition.ts, регистрация в apps/backend/src/app.ts, apps/backend/tests/nutrition.test.ts.
+- Обновлены только собственные backend-тесты apps/backend/tests/migrations.test.ts (счётчик миграций 0001→0001+0002) — прямое следствие новой миграции; production-код Foundation и SQL 0001 не тронуты.
+- Эндпоинты: GET/PUT /nutrition/goals, GET/POST /nutrition/meals, GET /nutrition/summary. Владелец всегда из session principal; local_date считается сервером по timezone профиля (reuse localDateFor из context-service); макросы/калории округляются до 0.1; ?date=YYYY-MM-DD с валидацией, дефолт — локальное «сегодня»; summary: consumed, remaining=goal−consumed (null без цели), mealCount.
+- OpenAPI генерируется из endpoints-каталога contracts автоматически — ручных правок openapi.ts не требовалось.
+- Идемпотентность POST meal: в кодовой базе НЕТ существующего механизма Idempotency-Key на уровне HTTP; согласно ТЗ fake-механизм не изобретался — POST создаёт новую запись. Требует решения LEAD, если идемпотентность нужна (кандидат под BCK-002).
+- Проверка: npm run check PASS — builds contracts/AI/backend + mobile typecheck + vitest 233 tests / 25 files (было 226; +7 nutrition тестов).
+- Git-сдача по AGENTS.md §9/§14 выполняется этим же коммитом; DONE подтверждает LEAD.
