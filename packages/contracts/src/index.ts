@@ -10,6 +10,11 @@ export const routes = {
   nutritionGoals: `${API_PREFIX}/nutrition/goals`,
   nutritionMeals: `${API_PREFIX}/nutrition/meals`,
   nutritionSummary: `${API_PREFIX}/nutrition/summary`,
+  emailVerifyRequest: `${API_PREFIX}/auth/email/verify/request`,
+  emailVerifyConfirm: `${API_PREFIX}/auth/email/verify/confirm`,
+  passwordResetRequest: `${API_PREFIX}/auth/password/reset/request`,
+  passwordResetConfirm: `${API_PREFIX}/auth/password/reset/confirm`,
+  sessionsRevokeAll: `${API_PREFIX}/auth/sessions/revoke-all`,
   openapi: `${API_PREFIX}/openapi.json`,
 } as const;
 export const nutritionMealById = (id: string) => `${API_PREFIX}/nutrition/meals/${id}` as const;
@@ -153,6 +158,22 @@ export const NutritionSummarySchema = z.object({
   mealCount: z.number().int().nonnegative(),
 }).strict();
 
+// --- Auth hardening (BCK-001). LEAD-owned contract; BACKEND implements routes/persistence.
+// Opaque single-use tokens delivered out of band (email); never echoed by the API.
+// Request endpoints always return an accepted-style result and never reveal whether an
+// account or verification state exists (no user enumeration).
+const AuthTokenSchema = z.string().min(32).max(512);
+export const AcceptedSchema = z.object({ status: z.literal('accepted') }).strict();
+export const EmailVerificationStatusSchema = z.object({
+  emailVerified: z.boolean(), verificationSentAt: IsoDateTimeSchema.nullable(),
+}).strict();
+export const VerifyEmailSchema = z.object({ token: AuthTokenSchema }).strict();
+export const RequestPasswordResetSchema = z.object({ email: EmailSchema }).strict();
+export const ResetPasswordSchema = z.object({
+  token: AuthTokenSchema, password: z.string().min(12).max(128),
+}).strict();
+export const RevokeAllSessionsSchema = z.object({ revokedCount: z.number().int().nonnegative() }).strict();
+
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type Profile = z.infer<typeof ProfileSchema>;
@@ -173,6 +194,12 @@ export type CreateMealInput = z.infer<typeof CreateMealSchema>;
 export type UpdateMealInput = z.infer<typeof UpdateMealSchema>;
 export type MealList = z.infer<typeof MealListSchema>;
 export type NutritionSummary = z.infer<typeof NutritionSummarySchema>;
+export type Accepted = z.infer<typeof AcceptedSchema>;
+export type EmailVerificationStatus = z.infer<typeof EmailVerificationStatusSchema>;
+export type VerifyEmailInput = z.infer<typeof VerifyEmailSchema>;
+export type RequestPasswordResetInput = z.infer<typeof RequestPasswordResetSchema>;
+export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
+export type RevokeAllSessions = z.infer<typeof RevokeAllSessionsSchema>;
 
 // Shared endpoint catalog: used for OpenAPI generation and contract tests.
 export const endpoints = [
@@ -194,4 +221,9 @@ export const endpoints = [
   { method: 'get', path: routes.nutritionMeals, auth: true, response: MealListSchema, status: 200 },
   { method: 'post', path: routes.nutritionMeals, auth: true, body: CreateMealSchema, response: MealSchema, status: 201 },
   { method: 'get', path: routes.nutritionSummary, auth: true, response: NutritionSummarySchema, status: 200 },
+  { method: 'post', path: routes.emailVerifyRequest, auth: true, response: EmailVerificationStatusSchema, status: 202 },
+  { method: 'post', path: routes.emailVerifyConfirm, auth: false, body: VerifyEmailSchema, response: EmailVerificationStatusSchema, status: 200 },
+  { method: 'post', path: routes.passwordResetRequest, auth: false, body: RequestPasswordResetSchema, response: AcceptedSchema, status: 202 },
+  { method: 'post', path: routes.passwordResetConfirm, auth: false, body: ResetPasswordSchema, status: 204 },
+  { method: 'post', path: routes.sessionsRevokeAll, auth: true, response: RevokeAllSessionsSchema, status: 200 },
 ] as const;
