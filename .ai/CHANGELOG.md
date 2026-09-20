@@ -73,3 +73,10 @@
 - PASS: smoke HTTP/Mobile/Backend/AI/SQLite 2/2, migration CLI apply/skip, Expo compatibility check, Metro Android/iOS/web export. Прежний basename-blocker migrations.test.ts не воспроизводится.
 - Remote CI run 35466855284 подтверждён через GitHub API: foundation ubuntu-latest и windows-latest — success, упавших шагов нет.
 - Все обязательные Foundation Gate пройдены. FND-005 закрыта в DONE. Не-блокирующие пункты переданы владельцам: npm audit 12 moderate (LEAD), P2 MOBILE risks (MOB-001), native/live AI (отдельные gates). FND-006 и feature-задачи не запускались.
+
+## 2026-09-20 — QA / DEVOPS — FND-006 независимый аудит Foundation DONE
+- Независимый аудит origin/main 6c8fd84 (прикладной код Foundation неизменён с 4297502, FND-005 PASS). Чтение auth/account/ai routes, services, db connection/migrate/repositories, errors/validation/env, contracts, mobile client/endpoints/storage.
+- Критичных дефектов, архитектурных нарушений, проблем безопасности, разрывов интеграции Backend/Mobile/AI и fake production data не обнаружено. SQL через bound-параметры; scrypt+соль+timingSafeEqual; opaque sessions (SHA-256); identity из principal; contract-schemas на обеих сторонах; AI disabled→503, preview-only без DB writes; consent/микрофон по правилам.
+- Не-блокирующее передано владельцам: npm audit 12 moderate (LEAD/OPS-002), P2 MOBILE race/timezone (MOB-001), backend hardening (BCK-001), косметика HomeScreen wardrobe wording (MOBILE).
+- Native readiness — отдельный вердикт: НЕ готов (APK/IPA, device SecureStore/cold-launch, live AI), это не блокер Foundation по ARCHITECTURE; вынесено в OPS-001/OPS-002/AI-001.
+- Реальных оставшихся блокеров Foundation нет. FND-006 DONE, Foundation закрыт. Проект передаётся LEAD для продуктового цикла (этап 2 — питание). Следующие задачи QA не начинает. Отчёт FND-006-REPORT.md.

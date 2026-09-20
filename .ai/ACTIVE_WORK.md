@@ -10,7 +10,14 @@
 - npm run check PASS в C:/Users/Admin2/Desktop/EveryDay и C:/Users/Admin2/AppData/Local/Temp/migration-portability-regression: в каждом 226 tests / 24 files, builds contracts/AI/backend и mobile typecheck. Исправленный файл одинаков в обеих копиях (git diff применён без дополнительных изменений).
 - Передача LEAD/QA: после опубликованного исправления повторить Foundation Gate. FND-005 остаётся BLOCKED до решения QA/LEAD; этот REVIEW относится только к portability repair. Фактические commit SHA/push/clean status передаются итоговым сообщением после Git-сдачи.
 
-## QA / DEVOPS — FND-005 DONE; финальный Foundation gate
+## QA / DEVOPS — FND-006 DONE; Foundation закрыт
+- Независимый аудит origin/main 6c8fd84 (прикладной код Foundation неизменён с 4297502). Область: чтение исходников BACKEND/MOBILE/AI + contracts; повторный полный FND-005 не переигрывался.
+- Не найдено: критичных дефектов, архитектурных нарушений, проблем безопасности, разрывов интеграции Backend/Mobile/AI, fake production data. SQL bound-параметрами; scrypt+соль+timingSafeEqual; opaque sessions SHA-256; identity только из principal; contract-schemas на обеих сторонах; AI disabled→503 и preview-only без DB writes; consent/микрофон по правилам; loopback+CORS allowlist+helmet+rate limit+bodyLimit.
+- Не-блокирующее с владельцами: npm audit 12 moderate (LEAD/OPS-002), P2 MOBILE race/timezone (MOB-001), backend hardening (BCK-001), HomeScreen wardrobe wording (MOBILE).
+- Native readiness отдельным вердиктом: НЕ готов (APK/IPA, device SecureStore/cold-launch, live AI) — OPS-001/OPS-002/AI-001; по ARCHITECTURE не блокер Foundation.
+- Foundation закрыт, проект передаётся LEAD для этапа 2 (питание). Следующие задачи QA не начинает. Отчёт .ai/FND-006-REPORT.md. Git-сдача: адресный add .ai/{FND-006-REPORT,TASKS,ACTIVE_WORK,CHANGELOG,PROJECT_STATE}.md, commit/push origin/main, чистый статус; SHA — в финальном сообщении.
+
+## История: QA / DEVOPS — FND-005 DONE; финальный Foundation gate
 - Повторный gate после portability-фикса BACKEND на origin/main 4297502 (local HEAD == origin/main, дерево чистое). FND-006 и feature-задачи не запускались.
 - Проверки в новой чистой копии с ДРУГИМ именем C:/Users/Admin2/AppData/Local/Temp/everyday-fnd005-gate-4297502 (без node_modules/build): обычный npm ci (610 packages), npm run check 226/226 PASS, builds contracts/AI/backend, mobile typecheck. Прежний basename-blocker migrations.test.ts снят и не воспроизводится.
 - PASS: smoke HTTP/Mobile/Backend/AI/SQLite 2/2, migration CLI applied 0001 / повтор skipped 0001, Expo install --check up to date, CI=1 build:mobile Android/iOS/web. Remote CI run 35466855284 (ubuntu-latest, windows-latest) success через GitHub API, упавших шагов нет.
