@@ -127,3 +127,13 @@
 - Перед реализацией проверены packages/contracts/src/index.ts. Для основных deliverable BCK-002 контрактов НЕТ: memory CRUD (list/create/delete + delete-all), экспорт аккаунта, удаление аккаунта — отсутствуют routes, Zod-схемы и записи в `endpoints`. Присутствует только `MemoryFactSchema` (форма факта внутри TodayContext) и флаги `memoryEnabled`/`aiConsent` в `PreferencesSchema` (disable-memory и consent переключаются существующим `PATCH /preferences`).
 - По AGENTS.md §4/§10 `packages/contracts` — критичный общий файл LEAD; правило задачи запрещает придумывать API и менять contracts самостоятельно. Реализация не начата, код/миграции/тесты и contracts не тронуты.
 - BCK-002 переведена в BLOCKED; эскалировано LEAD — требуется публикация контрактов memory CRUD / delete-all / account export / account delete (+ решение по disable-memory/consent). Диагностика в .ai/ACTIVE_WORK.md. Git-сдача этой записи по AGENTS.md §9/§14.
+
+## 2026-09-21 — LEAD / ARCHITECT — публикация контрактов memory/account privacy (c998b60)
+- Опубликованы контракты BCK-002 в packages/contracts/src/index.ts (commit c998b60): routes memory/accountExport/account + memoryFactById; схемы CreateMemoryFactSchema, MemoryListSchema, MemoryDeleteAllSchema, AccountExportSchema, DeleteAccountSchema; переиспользован MemoryFactSchema; парные типы; 6 записей в endpoints. Contracts — зона LEAD по ARCHITECTURE.md; backend-код не менялся.
+- Endpoints (все auth:true, ownership из principal, клиентский userId не принимается): GET/POST/DELETE `/memory`, DELETE `/memory/{id}`, GET `/account/export`, DELETE `/account`. Account deletion требует текущий пароль и каскад + revoke всех сессий. Export = profile/preferences/goals/memory/subscription + generatedAt, без fake-модулей.
+- Решение по consent: memoryEnabled/aiConsent остаются через существующий PATCH /preferences, отдельных endpoints нет (единый источник истины consent); disable-memory ≠ стирание фактов.
+- Проверено: npm run check PASS — builds contracts/AI/backend + mobile typecheck + 247 tests/26 files (openapi.test валидирует новые endpoints), 0 регрессий.
+
+## 2026-09-21 — LEAD / ARCHITECT — разблокировка BCK-002 после публикации контрактов
+- BCK-002 переведена в TODO (ready): блокировка «нет контрактов» снята публикацией c998b60. Зависимости и ownership сохранены; LEAD задачу не стартует, передаётся BACKEND на реализацию (миграция 0004 + routes→services→repositories→database, cascade/ownership/privacy tests).
+- Синхронизированы .ai/TASKS.md, .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md.

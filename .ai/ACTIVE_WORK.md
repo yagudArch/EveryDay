@@ -1,6 +1,14 @@
 # Активная работа
 
-## LEAD / ARCHITECT — Цикл 1: BCK-001 DONE, разблокировка BCK-002
+## LEAD / ARCHITECT — Цикл 1: BCK-002 разблокирована публикацией контрактов
+- Состояние Git: HEAD == origin/main == c998b60, дерево чистое (проверено fetch). Foundation закрыт; аудит не повторялся.
+- **BCK-002 (BACKEND) — РАЗБЛОКИРОВАНА (TODO ready).** Прежняя блокировка «нет контрактов memory/export/delete-account» СНЯТА: LEAD опубликовал контракты в c998b60 (feat(contracts): publish memory and account privacy contracts), npm run check 247/247 PASS. Backend-код не менялся.
+- Опубликованные endpoints (все auth:true, ownership из principal): GET `/memory` (MemoryList), POST `/memory` (CreateMemoryFact→MemoryFact 201), DELETE `/memory` (MemoryDeleteAll 200), DELETE `/memory/{id}` (204, memoryFactById), GET `/account/export` (AccountExport 200), DELETE `/account` (DeleteAccount body с текущим паролем → 204). MemoryFactSchema переиспользован (source: user_confirmed).
+- Решение по consent (зафиксировано в контракте): memoryEnabled/aiConsent остаются в PreferencesSchema и меняются существующим PATCH /preferences; новых consent-endpoints нет. Disable-memory ≠ стирание фактов; стирание — DELETE /memory (один/все).
+- Зависимости и ownership сохранены. BACKEND реализует BCK-002 (миграция 0004 + routes→services→repositories→database, cascade/ownership/privacy tests). LEAD задачу НЕ стартует. account deletion требует текущий пароль и revoke всех сессий.
+- Прочие статусы без изменений: BCK-001/NUT-001 DONE; OPS-001 BLOCKED (native toolchain); MOB-001 ← OPS-001; AI-001 ← OPS-002 + credentials/privacy; NUT-002 ← NUT-001 ✓ + MOB-001; NUT-003 ← NUT-001 ✓ + AI-001. Housekeeping debt `tatus --short` не в этом commit.
+
+## LEAD / ARCHITECT — Цикл 1: BCK-001 DONE, разблокировка BCK-002 (история)
 - Состояние Git: HEAD == origin/main == 6742ae2, дерево чистое (проверено fetch). Foundation закрыт (FND-001…006 DONE); Foundation-аудит НЕ повторялся.
 - **BCK-001 (BACKEND) — DONE.** Implementation 6742ae2 в origin/main (auth hardening: email verify, password reset, revoke-all; миграция 0003). Реализовано по опубликованному LEAD контракту 6a02032; packages/contracts НЕ менялся — проверено `git diff 6a02032..6742ae2 -- packages/contracts` = пусто. Проверено: npm run check PASS — builds contracts/AI/backend + mobile typecheck + 247 tests/26 files (+14, 0 регрессий), working tree clean. LEAD подтвердил DONE.
 - **BCK-002 (BACKEND) — РАЗБЛОКИРОВАНА (TODO ready).** Зависимость BCK-001 выполнена; миграция 0003 опубликована → следующая 0004. Роль BACKEND свободна. Memory CRUD/delete-all/disable + consent, экспорт/удаление аккаунта, cascade tests. Готова к запуску (LEAD её здесь НЕ стартует).
