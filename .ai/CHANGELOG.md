@@ -116,3 +116,9 @@
 - Opaque токены (32 байта base64url) доставляются через инъектируемый TokenDelivery seam; default noop-sink НЕ логирует токен, плейнтекст никогда не пересекает HTTP-границу и не эхонится API. Strict credential rate-limit применён к новым sensitive endpoints поверх глобального лимита.
 - Тесты: новый apps/backend/tests/auth-hardening.test.ts (14 тестов: verify happy/expired/replay/no-op/re-issue, reset no-enumeration/revoke-all/old-password/expired/replay, revoke-all count/isolation/auth, storage integrity — только hash + consumed_at, rate-limit на sensitive endpoint). helpers.ts: capturing TokenDelivery double. migrations.test.ts: счётчик миграций 0002→0003, добавлена таблица auth_tokens. auth-service.register() инициализирует emailVerified=false.
 - Проверка: npm run check PASS — builds contracts/AI/backend + mobile typecheck + vitest 247 tests / 26 files (было 233; +14, 0 регрессий). Git-сдача по AGENTS.md §9/§14; DONE подтверждает LEAD.
+
+## 2026-09-21 — LEAD / ARCHITECT — приёмка BCK-001, разблокировка BCK-002
+- BCK-001 (BACKEND) принята и переведена в DONE. Implementation 6742ae2 в origin/main (auth hardening: email verify, password reset, revoke-all; миграция 0003). Подтверждено: контракт не менялся (`git diff 6a02032..6742ae2 -- packages/contracts` пусто), миграция 0003_auth_hardening.sql присутствует, npm run check PASS 247 tests / 26 files, working tree clean, HEAD==origin/main 6742ae2. Foundation-аудит не повторялся; backend-код LEAD не менял.
+- BCK-002 (BACKEND) РАЗБЛОКИРОВАНА: зависимость BCK-001 выполнена (миграция 0003 → следующая 0004). Статус TODO (ready), готова к запуску; LEAD её не стартует.
+- OPS-001 (QA/DEVOPS) остаётся BLOCKED (нет native toolchain; путь через GitHub Actions native runners). Прочие зависимости без изменений: MOB-001 ← OPS-001; AI-001 ← OPS-002 + credentials/privacy; NUT-002 ← NUT-001 ✓ + MOB-001; NUT-003 ← NUT-001 ✓ + AI-001.
+- Синхронизированы .ai/TASKS.md, .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md.
