@@ -1,5 +1,12 @@
 # Активная работа
 
+## BACKEND — BCK-001 REVIEW (auth hardening)
+- Задача BCK-001, роль BACKEND. Реализация по опубликованному LEAD контракту 6a02032 (packages/contracts НЕ менялся).
+- Изменённые/новые файлы: database/migrations/0003_auth_hardening.sql (new); apps/backend/src/db/repositories/auth-tokens.ts (new), users.ts, sessions.ts; apps/backend/src/auth/crypto.ts; apps/backend/src/services/{auth-hardening-service.ts (new), token-delivery.ts (new)}, auth-service.ts; apps/backend/src/routes/auth.ts; apps/backend/src/{context.ts, app.ts}; apps/backend/tests/{auth-hardening.test.ts (new), helpers.ts, migrations.test.ts}; собственный блок ACTIVE_WORK, статус BCK-001 в TASKS, append CHANGELOG.
+- Реализовано: email verification (POST request 202 auth / confirm 200 public), password reset (request 202 public / confirm 204 public), revoke-all sessions (POST 200 auth). Миграция 0003: users.email_verified/email_verified_at + таблица auth_tokens (purpose CHECK email_verify|password_reset, token_hash UNIQUE, consumed_at, FK users ON DELETE CASCADE, индексы). Opaque single-use токены: хранится только SHA-256, доставка через инъектируемый TokenDelivery seam (default noop, НЕ логирует токен), токен никогда не эхонится API. Password reset request не раскрывает существование аккаунта (no user enumeration) и всегда 202; confirm заменяет hash и revoke-all сессий. Confirm single-use и atomic. Strict credential rate-limit применён к новым sensitive endpoints (email verify request/confirm, password reset request/confirm) поверх глобального.
+- Исходный Git: main → origin/main, HEAD 6a02032, дерево чистое. Git-сдачу BCK-001 выполняю последовательно один я.
+- Проверки: npm run check PASS — builds contracts/AI/backend + mobile typecheck + vitest 247 tests / 26 files (было 233; +14 auth-hardening тестов, 0 регрессий). Далее diff/identity → адресный staging → commit/push origin/main → чистый статус. DONE подтверждает LEAD.
+
 ## LEAD / ARCHITECT — Цикл 1: NUT-001 DONE, синхронизация зависимостей
 - Состояние Git: HEAD == origin/main == 9d9e1e0, дерево чистое (проверено fetch). Foundation закрыт (FND-001…006 DONE); Foundation-аудиты и полный regression НЕ повторяются.
 - **NUT-001 (BACKEND) — DONE.** Implementation 8467216 в origin/main (nutrition goals/meals/daily summary, миграция 0002). Проверено: npm run check 233/233 PASS, builds contracts/AI/backend + mobile typecheck PASS, working tree clean. LEAD подтвердил DONE.

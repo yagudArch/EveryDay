@@ -7,6 +7,33 @@ import { AuthResponseSchema, routes } from '@everyday/contracts';
 import { createApp, type CreateAppOptions } from '../src/app.js';
 import { closeDatabase, openDatabase, type Db } from '../src/db/connection.js';
 import type { AiGateway } from '../src/services/ai-service.js';
+import type { TokenDelivery, TokenDeliverySink } from '../src/services/token-delivery.js';
+
+/**
+ * Capturing TokenDelivery double. The plaintext auth token never crosses the HTTP API, so
+ * tests read the delivered token here (as production email would) to drive confirm/reset.
+ */
+export interface CapturingTokenDelivery extends TokenDeliverySink {
+  readonly deliveries: TokenDelivery[];
+  last(): TokenDelivery | undefined;
+  reset(): void;
+}
+
+export function createCapturingDelivery(): CapturingTokenDelivery {
+  const deliveries: TokenDelivery[] = [];
+  return {
+    deliveries,
+    deliver(delivery: TokenDelivery): void {
+      deliveries.push(delivery);
+    },
+    last(): TokenDelivery | undefined {
+      return deliveries.at(-1);
+    },
+    reset(): void {
+      deliveries.length = 0;
+    },
+  };
+}
 
 export const TEST_NOW = '2026-09-17T12:00:00.000Z';
 export const TEST_PASSWORD = 'correct-horse-battery-staple';
@@ -37,6 +64,8 @@ export interface Harness {
   clock: TestClock;
   databasePath: string;
   tempDir: string | null;
+  /** Capturing token-delivery double wired into the app (email verification, password reset). */
+  delivery: CapturingTokenDelivery;
   cleanup(): Promise<void>;
 }
 
@@ -47,11 +76,14 @@ export interface HarnessOptions {
   rateLimit?: boolean;
   /** Test double for the AI provider port. */
   ai?: AiGateway;
+  /** Capturing token-delivery double; a fresh one is created when omitted. */
+  delivery?: CapturingTokenDelivery;
   startAt?: string;
 }
 
 export async function createHarness(options: HarnessOptions = {}): Promise<Harness> {
   const clock = createClock(options.startAt ?? TEST_NOW);
+  const delivery = options.delivery ?? createCapturingDelivery();
   let tempDir: string | null = null;
   let databasePath = options.databasePath;
 
@@ -69,6 +101,7 @@ export async function createHarness(options: HarnessOptions = {}): Promise<Harne
       ? { enabled: true, max: 4, windowMs: 60_000, authMax: 3, maxEntries: 50 }
       : false,
     ai: options.ai,
+    tokenDelivery: delivery,
   };
 
   const app = await createApp(appOptions);
@@ -78,6 +111,7 @@ export async function createHarness(options: HarnessOptions = {}): Promise<Harne
     clock,
     databasePath,
     tempDir,
+    delivery,
     async cleanup(): Promise<void> {
       await app.close();
       if (tempDir) rmSync(tempDir, { recursive: true, force: true });

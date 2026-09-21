@@ -6,6 +6,8 @@ export interface UserRecord {
   email: string;
   displayName: string;
   passwordHash: string;
+  emailVerified: boolean;
+  emailVerifiedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -15,6 +17,8 @@ interface UserRow {
   email: string;
   display_name: string;
   password_hash: string;
+  email_verified: number;
+  email_verified_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -25,12 +29,15 @@ function toUser(row: UserRow): UserRecord {
     email: row.email,
     displayName: row.display_name,
     passwordHash: row.password_hash,
+    emailVerified: row.email_verified === 1,
+    emailVerifiedAt: row.email_verified_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
 
-const SELECT_COLUMNS = 'SELECT id, email, display_name, password_hash, created_at, updated_at FROM users';
+const SELECT_COLUMNS =
+  'SELECT id, email, display_name, password_hash, email_verified, email_verified_at, created_at, updated_at FROM users';
 
 export const users = {
   newId(): string {
@@ -60,6 +67,25 @@ export const users = {
   updateDisplayName(db: Db, id: string, displayName: string, updatedAt: string): boolean {
     return (
       runStatement(db, 'UPDATE users SET display_name = ?, updated_at = ? WHERE id = ?', [displayName, updatedAt, id])
+        .changes > 0
+    );
+  },
+
+  /** Marks the account's email as verified. Idempotent: re-confirming keeps the first timestamp. */
+  markEmailVerified(db: Db, id: string, atIso: string): boolean {
+    return (
+      runStatement(
+        db,
+        'UPDATE users SET email_verified = 1, email_verified_at = COALESCE(email_verified_at, ?), updated_at = ? WHERE id = ?',
+        [atIso, atIso, id],
+      ).changes > 0
+    );
+  },
+
+  /** Replaces the stored password hash. Callers hash outside any transaction (scrypt is slow). */
+  updatePasswordHash(db: Db, id: string, passwordHash: string, updatedAt: string): boolean {
+    return (
+      runStatement(db, 'UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?', [passwordHash, updatedAt, id])
         .changes > 0
     );
   },

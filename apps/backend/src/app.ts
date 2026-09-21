@@ -16,6 +16,7 @@ import { registerAuthRoutes } from './routes/auth.js';
 import { registerHealthRoutes } from './routes/health.js';
 import { registerNutritionRoutes } from './routes/nutrition.js';
 import { createAiGateway, type AiGateway } from './services/ai-service.js';
+import { noopTokenDelivery, type TokenDeliverySink } from './services/token-delivery.js';
 
 /**
  * Options for {@link createApp}. The exact signature is part of the Foundation contract:
@@ -43,6 +44,8 @@ export interface CreateAppOptions {
   env?: Partial<Env>;
   rateLimit?: { enabled: boolean; max: number; windowMs: number; authMax: number; maxEntries?: number } | false;
   ai?: AiGateway;
+  /** Out-of-band auth-token delivery seam. Tests inject a capturing double; defaults to a silent sink. */
+  tokenDelivery?: TokenDeliverySink;
 }
 
 /** Never log credentials, session tokens or free-form user text. */
@@ -133,6 +136,7 @@ export async function createApp(options: CreateAppOptions): Promise<FastifyInsta
     env,
     ai: options.ai ?? aiLoad!.gateway,
     requireAuth: createRequireAuth(db, now),
+    tokenDelivery: options.tokenDelivery ?? noopTokenDelivery,
   };
 
   registerHealthRoutes(app, context);

@@ -18,6 +18,13 @@ const PASSWORD_SCHEME = 'scrypt';
 
 export const SESSION_TOKEN_BYTES = 32;
 
+/**
+ * Byte length of out-of-band auth tokens (email verification, password reset). 32 random
+ * bytes encoded as base64url yield a 43-character opaque string, comfortably within the
+ * contract's 32..512 bound. Like sessions, only the SHA-256 hash is ever persisted.
+ */
+export const AUTH_TOKEN_BYTES = 32;
+
 function scryptAsync(password: string, salt: Buffer, keyLength: number, options: ScryptOptions): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     scryptCallback(password, salt, keyLength, options, (error, derivedKey) => {
@@ -80,5 +87,18 @@ export function generateSessionToken(): string {
 }
 
 export function hashSessionToken(token: string): string {
+  return createHash('sha256').update(token, 'utf8').digest('hex');
+}
+
+/** Generates an opaque, out-of-band auth token (email verification / password reset). */
+export function generateAuthToken(): string {
+  return randomBytes(AUTH_TOKEN_BYTES).toString('base64url');
+}
+
+/**
+ * Hashes an out-of-band auth token for storage/lookup. Same SHA-256 construction as
+ * session tokens: only the digest is persisted, never the token itself.
+ */
+export function hashAuthToken(token: string): string {
   return createHash('sha256').update(token, 'utf8').digest('hex');
 }

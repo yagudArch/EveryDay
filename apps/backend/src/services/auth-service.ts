@@ -70,6 +70,8 @@ export async function register(db: Db, input: RegisterInput, now: Date): Promise
         email,
         displayName: input.displayName,
         passwordHash,
+        emailVerified: false,
+        emailVerifiedAt: null,
         createdAt,
         updatedAt: createdAt,
       };

@@ -19,6 +19,7 @@ const EXPECTED_TABLES = [
   'user_preference_values',
   'user_preferences',
   'users',
+  'auth_tokens',
 ];
 
 function withTempDir<T>(work: (dir: string) => T): T {
@@ -43,16 +44,16 @@ describe('database migrations', () => {
       const db = openDatabase(join(dir, 'idempotent.db'));
       try {
         const first = runMigrations(db, defaultMigrationsDir);
-        expect(first.applied).toEqual(['0001', '0002']);
+        expect(first.applied).toEqual(['0001', '0002', '0003']);
         expect(first.skipped).toEqual([]);
-        expect(first.total).toBe(2);
+        expect(first.total).toBe(3);
 
         const second = runMigrations(db, defaultMigrationsDir);
         expect(second.applied).toEqual([]);
-        expect(second.skipped).toEqual(['0001', '0002']);
+        expect(second.skipped).toEqual(['0001', '0002', '0003']);
 
         const recorded = getRow<{ total: number }>(db, 'SELECT COUNT(*) AS total FROM schema_migrations');
-        expect(recorded?.total).toBe(2);
+        expect(recorded?.total).toBe(3);
 
         const tables = getRows<{ name: string }>(
           db,
@@ -186,7 +187,7 @@ describe('database migrations', () => {
       try {
         const summary = runMigrations(inspector, defaultMigrationsDir);
         expect(summary.applied).toEqual([]);
-        expect(summary.skipped).toEqual(['0001', '0002']);
+        expect(summary.skipped).toEqual(['0001', '0002', '0003']);
       } finally {
         closeDatabase(inspector);
       }

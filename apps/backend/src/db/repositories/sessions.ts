@@ -77,6 +77,17 @@ export const sessions = {
     );
   },
 
+  /**
+   * Revokes every currently-active session for a user and returns how many were revoked.
+   * Already-revoked sessions are left untouched, so the count reflects real state changes.
+   */
+  revokeAllForUser(db: Db, userId: string, atIso: string): number {
+    return runStatement(db, 'UPDATE sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL', [
+      atIso,
+      userId,
+    ]).changes;
+  },
+
   countActiveForUser(db: Db, userId: string, nowIso: string): number {
     const row = getRow<{ total: number }>(
       db,
