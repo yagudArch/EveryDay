@@ -15,9 +15,13 @@ export const routes = {
   passwordResetRequest: `${API_PREFIX}/auth/password/reset/request`,
   passwordResetConfirm: `${API_PREFIX}/auth/password/reset/confirm`,
   sessionsRevokeAll: `${API_PREFIX}/auth/sessions/revoke-all`,
+  memory: `${API_PREFIX}/memory`,
+  accountExport: `${API_PREFIX}/account/export`,
+  account: `${API_PREFIX}/account`,
   openapi: `${API_PREFIX}/openapi.json`,
 } as const;
 export const nutritionMealById = (id: string) => `${API_PREFIX}/nutrition/meals/${id}` as const;
+export const memoryFactById = (id: string) => `${API_PREFIX}/memory/${id}` as const;
 export const IsoDateTimeSchema = z.string().datetime({ offset: true });
 export const TimezoneSchema = z.string().min(1).max(100).refine((value) => {
   try { new Intl.DateTimeFormat('en', { timeZone: value }); return true; } catch { return false; }
@@ -174,6 +178,35 @@ export const ResetPasswordSchema = z.object({
 }).strict();
 export const RevokeAllSessionsSchema = z.object({ revokedCount: z.number().int().nonnegative() }).strict();
 
+// --- Memory & account privacy (BCK-002). LEAD-owned contract; BACKEND implements routes/persistence.
+// All endpoints authenticate with the session bearer and operate ONLY on the principal's own
+// data (ownership derived from the session, never a client-supplied userId). Reuses the existing
+// MemoryFactSchema (source: 'user_confirmed'); the AI never writes memory without user confirmation.
+// CONSENT DECISION: memoryEnabled and aiConsent stay in PreferencesSchema and are toggled via the
+// existing PATCH /preferences (UpdatePreferencesSchema.partial()). No new consent endpoints are
+// introduced — a single preferences surface avoids a second source of truth for consent. "Disable
+// memory" = PATCH /preferences { memoryEnabled: false }; it does NOT delete stored facts. Erasing
+// facts is DELETE /memory (one) or DELETE /memory (all, see MemoryDeleteAllSchema).
+export const CreateMemoryFactSchema = z.object({
+  fact: z.string().trim().min(1).max(1000),
+}).strict();
+export const MemoryListSchema = z.object({
+  facts: z.array(MemoryFactSchema).max(500),
+}).strict();
+// delete-all returns how many facts were removed; delete-one is a 204 no-body.
+export const MemoryDeleteAllSchema = z.object({ deletedCount: z.number().int().nonnegative() }).strict();
+// Full account data export (GDPR-style portability): profile, preferences, goals, memory, subscription
+// plus a server-set generatedAt. Domain modules not yet implemented are omitted, not faked.
+export const AccountExportSchema = z.object({
+  generatedAt: IsoDateTimeSchema,
+  profile: ProfileSchema, preferences: PreferencesSchema,
+  goals: z.array(GoalSchema), memory: z.array(MemoryFactSchema),
+  subscription: SubscriptionSchema,
+}).strict();
+// Irreversible account deletion. Requires the current password as an explicit confirmation; the
+// server cascades removal of all owned rows and revokes every session.
+export const DeleteAccountSchema = z.object({ password: z.string().min(1).max(128) }).strict();
+
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type Profile = z.infer<typeof ProfileSchema>;
@@ -200,6 +233,12 @@ export type VerifyEmailInput = z.infer<typeof VerifyEmailSchema>;
 export type RequestPasswordResetInput = z.infer<typeof RequestPasswordResetSchema>;
 export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
 export type RevokeAllSessions = z.infer<typeof RevokeAllSessionsSchema>;
+export type MemoryFact = z.infer<typeof MemoryFactSchema>;
+export type CreateMemoryFactInput = z.infer<typeof CreateMemoryFactSchema>;
+export type MemoryList = z.infer<typeof MemoryListSchema>;
+export type MemoryDeleteAll = z.infer<typeof MemoryDeleteAllSchema>;
+export type AccountExport = z.infer<typeof AccountExportSchema>;
+export type DeleteAccountInput = z.infer<typeof DeleteAccountSchema>;
 
 // Shared endpoint catalog: used for OpenAPI generation and contract tests.
 export const endpoints = [
@@ -226,4 +265,10 @@ export const endpoints = [
   { method: 'post', path: routes.passwordResetRequest, auth: false, body: RequestPasswordResetSchema, response: AcceptedSchema, status: 202 },
   { method: 'post', path: routes.passwordResetConfirm, auth: false, body: ResetPasswordSchema, status: 204 },
   { method: 'post', path: routes.sessionsRevokeAll, auth: true, response: RevokeAllSessionsSchema, status: 200 },
+  { method: 'get', path: routes.memory, auth: true, response: MemoryListSchema, status: 200 },
+  { method: 'post', path: routes.memory, auth: true, body: CreateMemoryFactSchema, response: MemoryFactSchema, status: 201 },
+  { method: 'delete', path: routes.memory, auth: true, response: MemoryDeleteAllSchema, status: 200 },
+  { method: 'delete', path: `${routes.memory}/{id}`, auth: true, status: 204 },
+  { method: 'get', path: routes.accountExport, auth: true, response: AccountExportSchema, status: 200 },
+  { method: 'delete', path: routes.account, auth: true, body: DeleteAccountSchema, status: 204 },
 ] as const;
