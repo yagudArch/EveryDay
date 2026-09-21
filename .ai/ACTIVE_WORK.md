@@ -8,6 +8,16 @@
 - Housekeeping debt (не в этом commit): ошибочный файл `tatus --short` в корне остаётся отдельным долгом на удаление.
 - Следующее к запуску: **BCK-002 (BACKEND)** — готова прямо сейчас. Параллельно возможна подготовка native-workflow для OPS-001 (QA/DEVOPS, `.github/workflows/**`) — другая роль, другие файлы.
 
+## BACKEND — BCK-002 BLOCKED: нет контрактов memory/export/delete-account
+- Роль BACKEND, задача BCK-002 (Memory CRUD/delete-all/disable, consent, экспорт/удаление аккаунта, cascade/ownership/privacy tests). Статус BLOCKED — блокировка на контрактах, не на Git и не на потере аргументов инструментами.
+- Исходный Git: main → origin/main, HEAD == origin/main == 492d7b7, дерево чистое (проверено fetch). Git identity согласована: yagudArch <ilya.khokhlov.2017@gmail.com>.
+- Проверка packages/contracts/src/index.ts (по правилу задачи «сначала проверь contracts»):
+  - ЕСТЬ: `MemoryFactSchema` (форма факта id/fact/source/createdAt) — используется только внутри `TodayContextSchema.memory`; `PreferencesSchema.memoryEnabled` и `PreferencesSchema.aiConsent` (булевы флаги, меняются через существующий `PATCH /preferences`). Т.е. «disable memory» и «consent» как переключатели уже покрыты preferences.
+  - НЕТ: ни в `routes`, ни в `endpoints`, ни в схемах — memory CRUD (`GET /memory` список, `POST /memory` + input-схема, `DELETE /memory/:id`, `memoryFactById`), delete-all memory, экспорт аккаунта (route + export response schema), удаление аккаунта (route + схема ответа/подтверждения).
+- Следствие: основные deliverable BCK-002 (memory CRUD, delete-all memory, account export, account deletion) не имеют опубликованных контрактов. По AGENTS.md §4/§10 `packages/contracts` — критичный общий файл (владелец LEAD); по правилу задачи запрещено придумывать API и менять contracts самостоятельно.
+- Реализация НЕ начата; код/миграции/тесты НЕ трогались; contracts НЕ менялись. В работе только эта запись .ai + статус BCK-002 в TASKS + append CHANGELOG.
+- Требуемое действие LEAD: опубликовать в `packages/contracts` контракты для memory CRUD, delete-all memory, account export, account delete (routes + Zod-схемы + записи в `endpoints`), решить, отдельные ли это endpoints для disable-memory/consent или достаточно текущего `PATCH /preferences`. После публикации BACKEND реализует BCK-002 (routes → services → repositories → database) и cascade/ownership/privacy tests. До публикации BCK-002 остаётся BLOCKED.
+
 ## BACKEND — BCK-001 REVIEW (auth hardening) — принято LEAD (история)
 - Задача BCK-001, роль BACKEND. Реализация по опубликованному LEAD контракту 6a02032 (packages/contracts НЕ менялся).
 - Изменённые/новые файлы: database/migrations/0003_auth_hardening.sql (new); apps/backend/src/db/repositories/auth-tokens.ts (new), users.ts, sessions.ts; apps/backend/src/auth/crypto.ts; apps/backend/src/services/{auth-hardening-service.ts (new), token-delivery.ts (new)}, auth-service.ts; apps/backend/src/routes/auth.ts; apps/backend/src/{context.ts, app.ts}; apps/backend/tests/{auth-hardening.test.ts (new), helpers.ts, migrations.test.ts}; собственный блок ACTIVE_WORK, статус BCK-001 в TASKS, append CHANGELOG.

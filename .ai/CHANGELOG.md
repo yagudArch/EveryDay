@@ -122,3 +122,8 @@
 - BCK-002 (BACKEND) РАЗБЛОКИРОВАНА: зависимость BCK-001 выполнена (миграция 0003 → следующая 0004). Статус TODO (ready), готова к запуску; LEAD её не стартует.
 - OPS-001 (QA/DEVOPS) остаётся BLOCKED (нет native toolchain; путь через GitHub Actions native runners). Прочие зависимости без изменений: MOB-001 ← OPS-001; AI-001 ← OPS-002 + credentials/privacy; NUT-002 ← NUT-001 ✓ + MOB-001; NUT-003 ← NUT-001 ✓ + AI-001.
 - Синхронизированы .ai/TASKS.md, .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md.
+
+## 2026-09-21 — BACKEND — BCK-002 BLOCKED (нет контрактов)
+- Перед реализацией проверены packages/contracts/src/index.ts. Для основных deliverable BCK-002 контрактов НЕТ: memory CRUD (list/create/delete + delete-all), экспорт аккаунта, удаление аккаунта — отсутствуют routes, Zod-схемы и записи в `endpoints`. Присутствует только `MemoryFactSchema` (форма факта внутри TodayContext) и флаги `memoryEnabled`/`aiConsent` в `PreferencesSchema` (disable-memory и consent переключаются существующим `PATCH /preferences`).
+- По AGENTS.md §4/§10 `packages/contracts` — критичный общий файл LEAD; правило задачи запрещает придумывать API и менять contracts самостоятельно. Реализация не начата, код/миграции/тесты и contracts не тронуты.
+- BCK-002 переведена в BLOCKED; эскалировано LEAD — требуется публикация контрактов memory CRUD / delete-all / account export / account delete (+ решение по disable-memory/consent). Диагностика в .ai/ACTIVE_WORK.md. Git-сдача этой записи по AGENTS.md §9/§14.
