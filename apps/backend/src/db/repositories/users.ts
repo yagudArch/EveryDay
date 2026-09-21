@@ -94,4 +94,15 @@ export const users = {
     const row = getRow<{ total: number }>(db, 'SELECT COUNT(*) AS total FROM users');
     return row?.total ?? 0;
   },
+
+  /**
+   * Permanently removes the account row. With `PRAGMA foreign_keys = ON` every owned table
+   * (sessions, preferences, preference values, goals, memory, daily context, subscriptions,
+   * meals, nutrition goals, auth tokens) is defined `ON DELETE CASCADE`, so this single delete
+   * erases all of the user's data and, by removing the session rows, revokes every session.
+   * Irreversible: there is no soft-delete flag.
+   */
+  deleteById(db: Db, id: string): boolean {
+    return runStatement(db, 'DELETE FROM users WHERE id = ?', [id]).changes > 0;
+  },
 };

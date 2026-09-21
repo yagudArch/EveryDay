@@ -14,6 +14,7 @@ import { registerAccountRoutes } from './routes/account.js';
 import { registerAiRoutes } from './routes/ai.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerHealthRoutes } from './routes/health.js';
+import { registerMemoryRoutes } from './routes/memory.js';
 import { registerNutritionRoutes } from './routes/nutrition.js';
 import { createAiGateway, type AiGateway } from './services/ai-service.js';
 import { noopTokenDelivery, type TokenDeliverySink } from './services/token-delivery.js';
@@ -105,7 +106,7 @@ export async function createApp(options: CreateAppOptions): Promise<FastifyInsta
   await app.register(cors, {
     // Explicit allowlist from configuration. `*` only when the operator opts in.
     origin: env.allowAnyOrigin ? true : [...env.corsOrigins],
-    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['content-type', 'authorization', 'x-request-id'],
     credentials: false,
     maxAge: 600,
@@ -144,6 +145,7 @@ export async function createApp(options: CreateAppOptions): Promise<FastifyInsta
   registerAccountRoutes(app, context);
   registerAiRoutes(app, context);
   registerNutritionRoutes(app, context);
+  registerMemoryRoutes(app, context);
   registerOpenApiRoute(app);
 
   app.addHook('onClose', async () => {

@@ -1,8 +1,15 @@
-import { UpdateDayContextSchema, UpdatePreferencesSchema, UpdateProfileSchema, routes } from '@everyday/contracts';
+import { DeleteAccountSchema, UpdateDayContextSchema, UpdatePreferencesSchema, UpdateProfileSchema, routes } from '@everyday/contracts';
 import type { FastifyInstance } from 'fastify';
 import { requirePrincipal } from '../auth/principal.js';
 import type { AppContext } from '../context.js';
-import { getPreferences, getProfile, updatePreferences, updateProfile } from '../services/account-service.js';
+import {
+  deleteAccount,
+  exportAccount,
+  getPreferences,
+  getProfile,
+  updatePreferences,
+  updateProfile,
+} from '../services/account-service.js';
 import { buildTodayContext, readSubscription, updateDayNote } from '../services/context-service.js';
 import { parseBody } from '../validation.js';
 
@@ -50,5 +57,22 @@ export function registerAccountRoutes(app: FastifyInstance, context: AppContext)
   app.get(routes.subscription, auth, async (request, reply) => {
     const principal = requirePrincipal(request);
     reply.status(200).send(readSubscription(context.db, principal.user, context.now()));
+  });
+
+  // Full data export of the principal's own account. Read-only; nothing is faked.
+  app.get(routes.accountExport, auth, async (request, reply) => {
+    const principal = requirePrincipal(request);
+    reply.header('cache-control', 'no-store');
+    reply.status(200).send(exportAccount(context.db, principal.user, context.now()));
+  });
+
+  // Irreversible account deletion. Requires the current password; cascades to all owned data
+  // and revokes every session. A wrong password is 401 and deletes nothing.
+  app.delete(routes.account, auth, async (request, reply) => {
+    const principal = requirePrincipal(request);
+    const input = parseBody(DeleteAccountSchema, request.body);
+    await deleteAccount(context.db, principal.user, input);
+    reply.header('cache-control', 'no-store');
+    reply.status(204).send();
   });
 }
