@@ -1,6 +1,19 @@
 # Активная работа
 
-## QA / DEVOPS — OPS-002 REVIEW (staging/secrets/backup/audit) — на приёмку LEAD
+## LEAD / ARCHITECT — Цикл 1: OPS-002 DONE, инфра-предпосылка AI-001 снята
+- Состояние Git: HEAD == origin/main == 6de5b2a, дерево чистое (проверено fetch). Foundation закрыт; аудит не повторялся.
+- **OPS-002 (QA/DEVOPS) — DONE.** Implementation 6de5b2a в origin/main. Проверено LEAD по отчёту .ai/OPS-002-REPORT.md и коду:
+  - Backup/restore SQLite: scripts/backup-sqlite.mjs (VACUUM INTO + integrity_check + sha256 sidecar + ротация), scripts/restore-sqlite.mjs (checksum+integrity перед перезаписью, safety copy, отказ при tamper). E2E scripts/backup-restore.test.mjs добавлен в CI (ci.yml строка 22).
+  - Staging HTTPS reference deploy/staging-nginx.conf (TLS→loopback, 80→443, HSTS, client_max_body_size 64k, X-Forwarded-*). Secret handling deploy/staging.env.example (шаблон, без секретов) + .gitignore (deploy/*.env, backups/).
+  - Audit: 12 moderate, 0 high/critical; все в dev/build tooling (Vitest mocker, uuid через Expo). backend/contracts/ai --omit=dev → 0 vuln — серверный runtime не затронут. force-fix breaking, не применялся.
+  - PostgreSQL multi-instance — оценка (async db-слой, PG-миграции, общий стор rate-limit/sessions, pg_dump/PITR), НЕ мигрирован (отдельная задача, решение LEAD).
+  - npm run check 260/260 PASS. Область только scripts/deploy/.github/.gitignore/.ai; apps/**, packages/**, database/**, contracts НЕ менялись.
+  - Ограничения (осознанно приняты): живой staging HTTPS на реальном домене и PG-миграция не проверялись — нет окружения; reference-артефакты. Это не блокирует OPS-002 в текущей среде.
+- **AI-001 (AI ENGINEER) — остаётся BLOCKED.** Инфраструктурная предпосылка от OPS-002 (staging HTTPS pattern, server-side secret handling, backup/restore) ВЫПОЛНЕНА. Остаются НЕвыполненными два внешних условия: (1) operator-supplied server-side credentials (реальные ключи провайдера, инъектируются секрет-стором, в mobile не попадают); (2) privacy review. Оба вне QA/DEVOPS — предоставляет оператор/LEAD. До их получения AI-001 не запускать. LEAD задачу НЕ стартует.
+- Остальные статусы без изменений: NUT-001/BCK-001/BCK-002 DONE. OPS-001 остаётся BLOCKED (native toolchain; путь через GitHub Actions native runners). MOB-001 ← OPS-001; NUT-002 ← NUT-001 ✓ + MOB-001; NUT-003 ← NUT-001 ✓ + AI-001; NUT-004 ← NUT-003.
+- Housekeeping debt: ошибочный файл `tatus --short` в корне остаётся отдельным долгом (не в этом commit).
+
+## QA / DEVOPS — OPS-002 REVIEW (staging/secrets/backup/audit) — принято LEAD (история)
 - Роль QA/DEVOPS, задача OPS-002. Область: scripts/**, .github/workflows/**, deploy/**, .gitignore, .ai/**. apps/**, packages/**, database/**, contracts НЕ менялись. OPS-001 не трогал (BLOCKED native). AI-001 не запускал. Git identity yagudArch <ilya.khokhlov.2017@gmail.com>. HEAD==origin/main==199ffaa на старте, дерево чистое.
 - Реализовано: scripts/backup-sqlite.mjs (VACUUM INTO + integrity_check + sha256 sidecar + ротация), scripts/restore-sqlite.mjs (проверка checksum+integrity до перезаписи, safety copy), scripts/backup-restore.test.mjs (реальный E2E round-trip + tamper-detection, добавлен в CI), deploy/staging-nginx.conf (TLS termination→loopback, HSTS, 64k limit, X-Forwarded-*), deploy/staging.env.example (шаблон, TRUST_PROXY=true, AI_PROVIDER=disabled), .gitignore (deploy/*.env, deploy/**/*.env, backups/).
 - Проверено (реальные запуски): npm run check PASS 260/260 tests/27 files; backup→wipe→restore на реальной SQLite после миграций (users 1→0→1 Alice, integrity ok, sha256 совпал); tamper restore отклонён по checksum (exit 1, live не перезаписан); backup-restore.test 1/1; git check-ignore подтвердил, что staging.env игнорируется, а .example — нет.
