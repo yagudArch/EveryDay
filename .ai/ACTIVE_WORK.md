@@ -1,6 +1,20 @@
 # Активная работа
 
-## LEAD / ARCHITECT — Цикл 1: BCK-002 разблокирована публикацией контрактов
+## LEAD / ARCHITECT — Цикл 1: BCK-002 DONE (memory / account privacy)
+- Состояние Git: HEAD == origin/main == d76f85c, дерево чистое (проверено fetch). Foundation закрыт; аудит не повторялся.
+- **BCK-002 (BACKEND) — DONE.** Implementation d76f85c в origin/main по контракту c998b60. Проверено LEAD:
+  - Контракт соблюдён, packages/contracts НЕ менялся — `git diff c998b60..d76f85c -- packages/contracts` пусто.
+  - Memory CRUD/delete-all: ownership из principal; SQL-предикат `WHERE ... AND user_id = ?` (deleteOwnedById) → cross-user удаление невозможно; чужой/отсутствующий id → 404. Факты только `source: 'user_confirmed'`.
+  - Account export: только реальные profile/preferences/goals/memory/subscription + generatedAt; нереализованные модули не включаются (без fake data). Export включает память независимо от memoryEnabled (это полная копия данных пользователя).
+  - Account deletion: verifyPassword против сохранённого hash; wrong password → 401, ничего не удаляется. Один DELETE users → каскад по FK ON DELETE CASCADE на все owned-таблицы, включая sessions → все сессии отозваны. Проверка пароля вне транзакции.
+  - Новой миграции не потребовалось: user_memory и все FK ON DELETE CASCADE уже в 0001; fake-миграция 0004 не создавалась.
+  - memoryEnabled/aiConsent — через существующий PATCH /preferences, без новых endpoints (подтверждено в account-service).
+  - npm run check PASS 260/260 tests / 27 files (+13, 0 регрессий). Вне BCK-002 изменений нет (git diff 2c39a2c..d76f85c: только backend BCK-002 файлы + .ai). LEAD подтвердил DONE.
+- Доступные к запуску сейчас: **OPS-002 (QA/DEVOPS)** — TODO, зависимость FND-006 ✓, роль свободна (OPS-001 остаётся BLOCKED и не занимает роль в смысле готовности OPS-002; брать вторым QA-агентом или после разбора OPS-001 по согласованию). Разблокирует AI-001. BACKEND в цикле 1 без открытых задач: NUT-004 ждёт NUT-003 (←AI-001).
+- Остаются BLOCKED: OPS-001 (native toolchain; путь через GitHub Actions native runners), MOB-001 (←OPS-001), AI-001 (←OPS-002 + credentials/privacy), NUT-002 (←NUT-001 ✓ + MOB-001), NUT-003 (←NUT-001 ✓ + AI-001), NUT-004 (←NUT-003).
+- Housekeeping debt: ошибочный файл `tatus --short` в корне остаётся отдельным долгом (не в этом commit).
+
+## LEAD / ARCHITECT — Цикл 1: BCK-002 разблокирована публикацией контрактов (история)
 - Состояние Git: HEAD == origin/main == c998b60, дерево чистое (проверено fetch). Foundation закрыт; аудит не повторялся.
 - **BCK-002 (BACKEND) — РАЗБЛОКИРОВАНА (TODO ready).** Прежняя блокировка «нет контрактов memory/export/delete-account» СНЯТА: LEAD опубликовал контракты в c998b60 (feat(contracts): publish memory and account privacy contracts), npm run check 247/247 PASS. Backend-код не менялся.
 - Опубликованные endpoints (все auth:true, ownership из principal): GET `/memory` (MemoryList), POST `/memory` (CreateMemoryFact→MemoryFact 201), DELETE `/memory` (MemoryDeleteAll 200), DELETE `/memory/{id}` (204, memoryFactById), GET `/account/export` (AccountExport 200), DELETE `/account` (DeleteAccount body с текущим паролем → 204). MemoryFactSchema переиспользован (source: user_confirmed).
