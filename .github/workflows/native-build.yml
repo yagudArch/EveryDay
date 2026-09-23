@@ -15,9 +15,14 @@
 name: Native Build
 on:
   workflow_dispatch:
-  # Uncomment to run on PRs that touch the mobile app once native runners are approved:
-  # pull_request:
-  #   paths: ['apps/mobile/**', '.github/workflows/native-build.yml']
+  # OPS-001: run on pushes that touch the native build so the fix is actually exercised
+  # (workflow_dispatch is unavailable without a token). Scoped by paths to avoid running
+  # this heavy job on unrelated commits.
+  push:
+    paths:
+      - '.github/workflows/native-build.yml'
+      - 'apps/mobile/**'
+      - 'scripts/native/**'
 
 permissions:
   contents: read
@@ -39,8 +44,15 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # ubuntu-latest ships the Android SDK preinstalled (ANDROID_HOME/ANDROID_SDK_ROOT set).
+      # The previous `android-actions/setup-android@v3` step failed here (~24s) and blocked the
+      # whole Android job; use the preinstalled SDK directly and just accept licenses.
+      - name: Verify Android SDK and accept licenses
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          test -n "$ANDROID_HOME" || { echo 'ANDROID_HOME is not set on the runner'; exit 1; }
+          yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses >/dev/null 2>&1 || true
 
       # Install the whole workspace so @everyday/contracts is linked for the mobile app.
       - run: npm ci
