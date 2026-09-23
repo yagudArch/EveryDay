@@ -1,5 +1,12 @@
 # Активная работа
 
+## QA / DEVOPS — OPS-001 native workflow подготовлен (остаётся BLOCKED до реального прогона)
+- Реализовано в зоне QA/DEVOPS: .github/workflows/native-build.yml (jobs android/android-device/ios), scripts/native/android-device-check.mjs, scripts/native/device-checklist.md. Feature-код apps/mobile/apps/backend/packages НЕ менялся. AI-001 не брал.
+- Android job: ubuntu-latest, setup-java JDK17 temurin, android-actions/setup-android, npm ci, expo prebuild -p android --no-install, Gradle assembleDebug, upload APK artifact. iOS job: macos-latest, Xcode, expo prebuild -p ios, pod install, xcodebuild -sdk iphonesimulator (CODE_SIGNING_ALLOWED=NO), upload .app artifact. android-device job: reactivecircus/android-emulator-runner API34, реальные проверки cold-launch/no-mic/persistence, upload report.
+- Проверено локально: node --check device-check скрипта PASS; YAML валиден (python yaml.safe_load → jobs android/android-device/ios, on: workflow_dispatch); npm run check 260/260 PASS.
+- ОГРАНИЧЕНИЕ (не фабрикую): реальный прогон workflow и artifacts НЕ подтверждены — нет gh CLI, нет GH_TOKEN/GITHUB_TOKEN, workflow только workflow_dispatch. Полный SecureStore login/logout/restart UI-E2E требует Detox/Maestro (в репо нет) — device-check покрывает manifest/permission/process/data-dir lifecycle, не UI-раунд-трип. Follow-up для MOB-001/новой QA-задачи (решает LEAD).
+- OPS-001 остаётся BLOCKED: создание workflow не закрывает native gate. Нужен зелёный реальный прогон на одобренных runner'ах (оператор/LEAD запускает workflow_dispatch или включает pull_request-триггер). Отчёт .ai/OPS-001-REPORT.md. Git-сдача: адресный add, commit `ci: add native Android and iOS build runners`, push origin/main, чистый статус.
+
 ## LEAD / ARCHITECT — Цикл 1: OPS-002 DONE, инфра-предпосылка AI-001 снята
 - Состояние Git: HEAD == origin/main == 6de5b2a, дерево чистое (проверено fetch). Foundation закрыт; аудит не повторялся.
 - **OPS-002 (QA/DEVOPS) — DONE.** Implementation 6de5b2a в origin/main. Проверено LEAD по отчёту .ai/OPS-002-REPORT.md и коду:

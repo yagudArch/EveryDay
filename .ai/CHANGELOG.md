@@ -169,3 +169,11 @@
 - OPS-001 остаётся BLOCKED (native toolchain). Прочие зависимости без изменений: MOB-001 ← OPS-001; NUT-002 ← MOB-001; NUT-003 ← AI-001; NUT-004 ← NUT-003.
 - Ограничения OPS-002 (живой staging HTTPS/PG не проверялись — нет окружения) осознанно приняты, не блокируют закрытие в текущей среде.
 - Синхронизированы .ai/TASKS.md, .ai/ACTIVE_WORK.md, .ai/PROJECT_STATE.md.
+
+## 2026-09-23 — QA / DEVOPS — OPS-001 native build workflow (подготовлен, BLOCKED до прогона)
+- Реализовано (.github/workflows + scripts/native), feature-код apps/**/packages/** НЕ менялся, AI-001 не брал.
+- .github/workflows/native-build.yml (workflow_dispatch): job android — ubuntu-latest, setup-java JDK17 temurin, android-actions/setup-android, npm ci, `expo prebuild -p android --no-install`, Gradle `assembleDebug`, upload APK artifact. job ios — macos-latest, Xcode select, `expo prebuild -p ios`, `pod install`, `xcodebuild -sdk iphonesimulator` CODE_SIGNING_ALLOWED=NO, упаковка + upload .app artifact. job android-device — reactivecircus/android-emulator-runner API34, скачивает APK, гоняет device-check, грузит report.
+- scripts/native/android-device-check.mjs — реальные проверки на эмуляторе (не фабрикуются): манифест без RECORD_AUDIO; cold-launch процесс жив; runtime RECORD_AUDIO не granted; data-dir переживает force-stop+relaunch; пишет device-check-report.json, exit≠0 при FAIL. scripts/native/device-checklist.md — границы gate.
+- Проверено локально: node --check скрипта PASS; YAML валиден (jobs android/android-device/ios, on: workflow_dispatch); npm run check 260/260 PASS.
+- ОГРАНИЧЕНИЕ (не фабрикую device E2E): реальный прогон workflow и artifacts НЕ подтверждены — нет gh CLI/GH_TOKEN, workflow_dispatch не запускается push'ем. Полный SecureStore login/logout/restart UI-E2E требует Detox/Maestro (в репо нет); device-check покрывает manifest/permission/process/data-dir lifecycle, не UI-раунд-трип. Follow-up (MOB-001/новая QA-задача, решает LEAD).
+- OPS-001 остаётся BLOCKED: создание workflow не закрывает native gate. Закрытие — только после зелёного реального прогона (APK + iOS .app + device-check report) на одобренных runner'ах; запускает оператор/LEAD. Отчёт .ai/OPS-001-REPORT.md.
