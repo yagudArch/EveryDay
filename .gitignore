@@ -17,4 +17,8 @@ coverage/
 data/
 apps/mobile/android/
 apps/mobile/ios/
+# OPS-002: never commit filled deploy secrets or local SQLite backups.
+deploy/*.env
+deploy/**/*.env
+backups/
 .DS_Store

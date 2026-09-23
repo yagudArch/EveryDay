@@ -19,6 +19,7 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: node --import tsx --test scripts/foundation-smoke.mjs
+      - run: node --import tsx --test scripts/backup-restore.test.mjs
       - run: npm run db:migrate
       - run: npm exec -w @everyday/mobile -- expo install --check
       - run: npm run build:mobile

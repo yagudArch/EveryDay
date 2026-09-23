@@ -1,5 +1,14 @@
 # Активная работа
 
+## QA / DEVOPS — OPS-002 REVIEW (staging/secrets/backup/audit) — на приёмку LEAD
+- Роль QA/DEVOPS, задача OPS-002. Область: scripts/**, .github/workflows/**, deploy/**, .gitignore, .ai/**. apps/**, packages/**, database/**, contracts НЕ менялись. OPS-001 не трогал (BLOCKED native). AI-001 не запускал. Git identity yagudArch <ilya.khokhlov.2017@gmail.com>. HEAD==origin/main==199ffaa на старте, дерево чистое.
+- Реализовано: scripts/backup-sqlite.mjs (VACUUM INTO + integrity_check + sha256 sidecar + ротация), scripts/restore-sqlite.mjs (проверка checksum+integrity до перезаписи, safety copy), scripts/backup-restore.test.mjs (реальный E2E round-trip + tamper-detection, добавлен в CI), deploy/staging-nginx.conf (TLS termination→loopback, HSTS, 64k limit, X-Forwarded-*), deploy/staging.env.example (шаблон, TRUST_PROXY=true, AI_PROVIDER=disabled), .gitignore (deploy/*.env, deploy/**/*.env, backups/).
+- Проверено (реальные запуски): npm run check PASS 260/260 tests/27 files; backup→wipe→restore на реальной SQLite после миграций (users 1→0→1 Alice, integrity ok, sha256 совпал); tamper restore отклонён по checksum (exit 1, live не перезаписан); backup-restore.test 1/1; git check-ignore подтвердил, что staging.env игнорируется, а .example — нет.
+- Security audit: npm audit 12 moderate, 0 high/critical; 2 уникальные advisory (@vitest/mocker dev-tooling; uuid через xcode/Expo build tooling). npm audit --omit=dev -w backend и -w contracts/ai → 0 vulnerabilities: серверный runtime не затронут. audit fix --force (vitest 5 / expo 46) — breaking, не применял.
+- multi-instance PostgreSQL — оценка (не реализация): async db-абстракция вместо синхронного node:sqlite, PG-диалект миграций, общий стор для rate limiter/auth_tokens/sessions между инстансами, pg_dump/PITR вместо VACUUM INTO, one-off data migration + PG integration suite. Отдельная задача BACKEND+QA, решение LEAD.
+- Риски: TLS-материал вне репо (корректно); rate limiter/auth-токены per-process in-memory — блокер только multi-instance; SQLite backup пока на том же хосте (cron/offsite — операционная настройка); AI ключи server-side при AI-001. Ограничение: живой HTTPS на реальном домене/staging-хосте не прогонялся (нет хоста) — проверены конфиг, скрипты и gitignore. PostgreSQL не мигрировался.
+- AI-001: OPS-002 закрывает свою часть предпосылок (HTTPS pattern, secret handling, backup/restore); остаются operator credentials + privacy review вне QA/DEVOPS. Отчёт .ai/OPS-002-REPORT.md. Статус REVIEW; DONE подтверждает LEAD. Git-сдача: адресный add, commit/push origin/main, чистый статус; SHA — в финальном сообщении.
+
 ## LEAD / ARCHITECT — Цикл 1: BCK-002 DONE (memory / account privacy)
 - Состояние Git: HEAD == origin/main == d76f85c, дерево чистое (проверено fetch). Foundation закрыт; аудит не повторялся.
 - **BCK-002 (BACKEND) — DONE.** Implementation d76f85c в origin/main по контракту c998b60. Проверено LEAD:
